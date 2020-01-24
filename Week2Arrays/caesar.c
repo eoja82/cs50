@@ -8,23 +8,14 @@ string encrypt(string str, long key);
 
 int main(int argc, string argv[])
 {
-    if (argc == 2)
+    if (argc == 2 && check_argv_1(argv[1]))
     {
-        //make sure only digits entered
-        if (check_argv_1(argv[1]))
-        {
-            long key;
-            char *ptr;
-            key = strtol(argv[1], &ptr, 10);
-            string message = get_string("plaintext: ");
-            string encrypted = encrypt(message, key);
-            printf("ciphertext: %s\n", encrypted);
-        }
-        else
-        {
-            printf("Usage: ./caeser key\n");
-            return 1;
-        }
+        long key;
+        char *ptr;
+        key = strtol(argv[1], &ptr, 10);
+        string message = get_string("plaintext: ");
+        string encrypted = encrypt(message, key);
+        printf("ciphertext: %s\n", encrypted);
     }
     else
     {
@@ -33,6 +24,7 @@ int main(int argc, string argv[])
     }
 }
 
+//make sure only digits entered
 bool check_argv_1(string num)
 {
     bool result = true;
