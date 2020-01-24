@@ -7,12 +7,14 @@ int main(void)
 {
     long long cardNum = get_long("Card Number: \n");
     long long tempNum = cardNum;
+    //get lenght of card number
     int numLen = 0;
     while (tempNum > 0) 
     {
         tempNum /= 10;
         numLen++;
     }
+    //make card number an array, reversed
     long long tempNum2 = cardNum;
     int arr[numLen];
     for (int i = 0; i < numLen; i++)

@@ -5,7 +5,7 @@ void printSpace(int n);
 void printHash(int n);
 void printNewLine(void);
 
-//print a hash pyramid with height and width between 1 and 8 based on user input, angle to right two spaces then pyramid angled left    
+//print a hash pyramid with height and width between 1 and 8 based on user input, 1st pyramid angle to right, then two spaces, then pyramid angled left, like end of Mario Bros 
 int main(void)
 {   
     int height = 0;

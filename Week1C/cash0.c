@@ -46,4 +46,3 @@ int getCoins(int change, int coin)
     int coins = floor(change / coin);
     return coins;
 }
-

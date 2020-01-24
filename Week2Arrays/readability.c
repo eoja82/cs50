@@ -17,6 +17,7 @@ int main(void)
     int sentences = count_sentences(text);
     float l = ((float) letters / (float) words) * 100;
     float s = ((float) sentences / (float) words) * 100;
+    //Coleman-Liau formula
     float index = (0.0588 * l) - (0.296 * s) - 15.8;
     int grade = (index - floor(index) > 0.5 ? ceil(index) : floor(index));
     if (grade >= 16)
