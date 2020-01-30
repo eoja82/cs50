@@ -1,6 +1,9 @@
+#include <cs50.h>
 #include <stdio.h>
 #include <math.h>
 #include "helpers.h"
+
+int * get_color(int width, int height, int i, int j, RGBTRIPLE image[height][width]);
 
 // Convert image to grayscale
 void grayscale(int height, int width, RGBTRIPLE image[height][width])
@@ -81,5 +84,48 @@ void reflect(int height, int width, RGBTRIPLE image[height][width])
 // Blur image
 void blur(int height, int width, RGBTRIPLE image[height][width])
 {
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            int *new_color = get_color(width, height, i, j, image);
+            image[i][j].rgbtBlue = *(new_color + 0);
+            image[i][j].rgbtGreen = *(new_color + 1);
+            image[i][j].rgbtRed = *(new_color + 2);
+        }
+    }
     return;
 }
+int * get_color(int width, int height, int i, int j, RGBTRIPLE image[height][width])
+{
+    //FIX HERE
+    int imin = i - 1 > 0 ? i - 1 : 0;
+    int imax = i + 1 < height - 1 ? i + 1 : height - 1;
+    int jmin = j - 1 > 0 ? j - 1 : 0;
+    int jmax = j + 1 < width - 1 ? j + 1 : width - 1; 
+    //count adjacent pixels
+    int counter = 0;
+    static int colors[3];
+    for (int x = imin; x <= imax; x++)  
+    {
+        for (int y = jmin; y <= jmax; y++)
+        {
+            //printf("%i, %i, %i\n", image[x][y].rgbtBlue, image[x][y].rgbtGreen, image[x][y].rgbtRed);
+            colors[0] += image[x][y].rgbtBlue;
+            colors[1] += image[x][y].rgbtGreen;
+            colors[2] += image[x][y].rgbtRed;
+            counter++;
+        } 
+    }
+    for (int k = 0; k < 3; k++)
+    {
+        colors[k] = round((float) colors[k] / 3);
+    }
+    
+    return colors;
+}
+/* int get_average(int width, int height, int i, int j, RGBTRIPLE image[height][width])
+{
+    int average = round((float)(image[i][j].rgbtBlue + image[i][j].rgbtGreen + image[i][j].rgbtRed) / 3);
+    return average;
+} */
