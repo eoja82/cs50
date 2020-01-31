@@ -3,23 +3,17 @@
 #include <math.h>
 #include "helpers.h"
 
-int * get_color(int width, int height, int i, int j, RGBTRIPLE image[height][width]);
+int * get_color(int width, int height, int i, int j, RGBTRIPLE image[height][width], int colors[]);
 
 // Convert image to grayscale
 void grayscale(int height, int width, RGBTRIPLE image[height][width])
 {
-    // printf("%i, %i, %i\n", image[0][0].rgbtBlue, image[0][0].rgbtGreen, image[0][0].rgbtRed);
     //need to convert to float to get decimal when dividing
     float ave = (float) (image[0][0].rgbtBlue + image[0][0].rgbtGreen + image[0][0].rgbtRed) / 3;
-    //printf("ave: %.3f\n", ave);
-    int nc = round(ave);
-    // int new_color = average - floor(average) > 0.5 ? ceil(average) : floor(average);
-    //printf("new_color: %i\n", nc);
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
         {
-            //need to convert one int to float to get decimal when dividing
             float average = (float)(image[i][j].rgbtBlue + image[i][j].rgbtGreen + image[i][j].rgbtRed) / 3;
             int new_color = round(average);
             image[i][j].rgbtBlue = new_color;
@@ -27,19 +21,12 @@ void grayscale(int height, int width, RGBTRIPLE image[height][width])
             image[i][j].rgbtRed = new_color;
         }
     }
-    //printf("%i, %i, %i\n", image[0][0].rgbtBlue, image[0][0].rgbtGreen, image[0][0].rgbtRed);
     return;
 }
 
 // Convert image to sepia
 void sepia(int height, int width, RGBTRIPLE image[height][width])
 {   
-    /* printf("%i, %i, %i\n", image[0][0].rgbtBlue, image[0][0].rgbtGreen, image[0][0].rgbtRed);
-    int b = image[0][0].rgbtBlue;
-    int g = image[0][0].rgbtGreen;
-    int r = image[0][0].rgbtRed;
-    int newr = round((.393 * r) + (.769 * g) + (.189 * b));
-    printf("newr: %i\n", newr); */
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
@@ -61,7 +48,6 @@ void sepia(int height, int width, RGBTRIPLE image[height][width])
 // Reflect image horizontally
 void reflect(int height, int width, RGBTRIPLE image[height][width])
 {
-    //printf("w: %i, h: %i\n", width, height);
     for (int i = 0; i < height; i++)
     {
         int half_width = width / 2;
@@ -84,48 +70,58 @@ void reflect(int height, int width, RGBTRIPLE image[height][width])
 // Blur image
 void blur(int height, int width, RGBTRIPLE image[height][width])
 {
+    //store blurred colors in blurred
+    RGBTRIPLE blurred[height][width];
+    //populate blurred
     for (int i = 0; i < height; i++)
     {
         for (int j = 0; j < width; j++)
         {
-            int *new_color = get_color(width, height, i, j, image);
-            image[i][j].rgbtBlue = *(new_color + 0);
-            image[i][j].rgbtGreen = *(new_color + 1);
-            image[i][j].rgbtRed = *(new_color + 2);
+            //colors array to pass and return to get_color
+            int colors[3] = {0, 0, 0};
+            int *new_color = get_color(width, height, i, j, image, colors);
+            blurred[i][j].rgbtBlue = colors[0];
+            blurred[i][j].rgbtGreen = colors[1];
+            blurred[i][j].rgbtRed = colors[2];
+        }
+    }
+    //change image to blurred
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            image[i][j].rgbtBlue = blurred[i][j].rgbtBlue;
+            image[i][j].rgbtGreen = blurred[i][j].rgbtGreen;
+            image[i][j].rgbtRed = blurred[i][j].rgbtRed;
         }
     }
     return;
 }
-int * get_color(int width, int height, int i, int j, RGBTRIPLE image[height][width])
+int * get_color(int width, int height, int i, int j, RGBTRIPLE image[height][width], int colors[])
 {
-    //FIX HERE
+    //make sure not going off picture grid
     int imin = i - 1 > 0 ? i - 1 : 0;
     int imax = i + 1 < height - 1 ? i + 1 : height - 1;
     int jmin = j - 1 > 0 ? j - 1 : 0;
     int jmax = j + 1 < width - 1 ? j + 1 : width - 1; 
     //count adjacent pixels
     int counter = 0;
-    static int colors[3];
+    //iterate over adjacent pixels
     for (int x = imin; x <= imax; x++)  
     {
         for (int y = jmin; y <= jmax; y++)
         {
-            //printf("%i, %i, %i\n", image[x][y].rgbtBlue, image[x][y].rgbtGreen, image[x][y].rgbtRed);
             colors[0] += image[x][y].rgbtBlue;
             colors[1] += image[x][y].rgbtGreen;
             colors[2] += image[x][y].rgbtRed;
             counter++;
         } 
     }
+    //compute average of adjacent pixel colors
     for (int k = 0; k < 3; k++)
     {
-        colors[k] = round((float) colors[k] / 3);
+        colors[k] = round((float) colors[k] / counter);
     }
     
     return colors;
 }
-/* int get_average(int width, int height, int i, int j, RGBTRIPLE image[height][width])
-{
-    int average = round((float)(image[i][j].rgbtBlue + image[i][j].rgbtGreen + image[i][j].rgbtRed) / 3);
-    return average;
-} */
