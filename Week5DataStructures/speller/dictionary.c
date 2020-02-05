@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
-//strcasecmp
 #include <strings.h>
 #include <ctype.h>
 
@@ -18,32 +17,36 @@ typedef struct node
 node;
 
 // Number of buckets in hash table
-const unsigned int N = 676;
+const unsigned int N = 17576;
 unsigned int word_count = 0;
 
 // Hash table
 node *table[N];
+
+void initialise(node *hashtable[])
+{
+    for (int i = 0; i < N; i++)
+    {
+        hashtable[i] = NULL;
+    }
+}
 
 // Returns true if word is in dictionary else false
 bool check(const char *word)
 {
     //convert word to lowercase becase hash uses ascii numbers
     int length = strlen(word);
-    printf("length: %i\n", length);
     char to_lowercase[length + 1];
     for (int i = 0; i < length; i++)
     {
         to_lowercase[i] = tolower(word[i]);
     }
     to_lowercase[length] = '\0';
-    printf("lower: %s\n", to_lowercase);
+
     unsigned int index = hash(to_lowercase);
-    printf("index: %i\n", index);
     node *current = table[index];
-    //printf("current word: %s, current next: %p\n", table[67]->word, table[67]->next);
-    /* while (current->next != NULL)
+    while (current != NULL)
     {
-        printf("in while\n");
         if (strcasecmp(current->word, word) == 0)
         {
             return true;
@@ -52,7 +55,7 @@ bool check(const char *word)
         {
             current = current->next;
         }
-    } */
+    }
     return false;
 }
 
@@ -60,17 +63,17 @@ bool check(const char *word)
 unsigned int hash(const char *word)
 {
     int hash = 0;
-    for (int i = 0; i < strlen(word) && i < 2; i++)
+    for (int i = 0; i < strlen(word) && i < 3; i++)
     {
         hash += toupper(word[i]);
     }
-    
     return (hash % N) - 65;
 }
 
 // Loads dictionary into memory, returning true if successful else false
 bool load(const char *dictionary)
 {
+    initialise(table);
     // open file
     FILE *file = fopen(dictionary, "r");
     if (file == NULL)
@@ -87,40 +90,23 @@ bool load(const char *dictionary)
         {
             return false;
         }
-        strcpy(n->word, buffer);
-        n->next = NULL;
-        printf("%s, %p\n", n->word, n->next);
-        unsigned int index = hash(n->word);
-        printf("index: %i, %s\n", index, n->word);
-        //find node at end of list
-        node *prev = NULL;
-        //int counter = 0;
-        for (node *curr = table[index]; curr != NULL; curr = curr->next)
+        //set node so no valgrind errors
+        memset(n, 0, sizeof(node));
+        strncpy(n->word, buffer, sizeof(buffer));
+        unsigned int index = hash(buffer);
+        
+        //insert node at start of list
+        if (table[index] == NULL)
         {
-            //counter++;
-            prev = curr;
-        }
-        //if list is empty
-        if (prev == NULL)
-        {
-            //printf("prev == NULL\n");
             table[index] = n;
         }
-        //else add to end of list
         else
         {
-            //printf("prev: %s\n", prev->word);
-            prev->next = n;
+            n->next = table[index];
+            table[index] = n;
         }
         word_count++;
-        //printf("counter: %i\n", counter);
-        if (table[0])
-        {
-            printf("table0: %s\n", table[0]->word);
-        }
-        free(n);
     }
-    printf("word count: %i\n", word_count);
     fclose(file);
     return true;
 }
@@ -134,6 +120,21 @@ unsigned int size(void)
 // Unloads dictionary from memory, returning true if successful else false
 bool unload(void)
 {
-    // TODO
-    return false;
+    for (int i = 0; i < N; i++)
+    {
+        if (table[i] == NULL)
+        {
+            continue;
+        }
+        else
+        {
+            while (table[i] != NULL)
+            {
+                node *tmp = table[i]->next;
+                free(table[i]);
+                table[i] = tmp;
+            }
+        }
+    }
+    return true;
 }
