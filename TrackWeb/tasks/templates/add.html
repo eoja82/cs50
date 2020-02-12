@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+
+{% block body %}
+  <form action="/add" method="POST">
+    <!-- the example from the video uses js but -->
+    <!-- another option rather than the below js, required could just be added to input -->
+    <input id="task" name="task" type="text" placeholder="Task Name">
+    <input id="submit" type="submit" disabled>
+    <script>
+      document.querySelector("#task").onkeyup = function() {
+        if (document.querySelector("#task").value === "") {
+          document.querySelector("#submit").disabled = true;
+        } else {
+          document.querySelector("#submit").disabled = false;
+        }
+      }
+    </script>
+  </form>
+{% endblock %}
