@@ -17,9 +17,9 @@ def register():
     else:
         name = request.form.get("name")
         if not name:
-          return render_template("apology.html", message="You must provide a name.")
+            return render_template("apology.html", message="You must provide a name.")
         email = request.form.get("email")
         if not email:
-          return render_template("apology.html", message="You must provide and email.")
+            return render_template("apology.html", message="You must provide and email.")
         db.execute("INSERT INTO registrants (name, email) VALUES (:name, :email)", name=name, email=email)
         return redirect("/")
