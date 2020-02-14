@@ -51,7 +51,44 @@ def index():
 @login_required
 def buy():
     """Buy shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":
+        quote = lookup(request.form.get("symbol"))
+        if not quote:
+            return apology("Invalid Symbol")
+        quantity = int(request.form.get("quantity"))
+        if quantity <= 0:
+            return apology("Quantity must be greater than 0")
+        
+        # check user's account to see if enough cash to purchase stock
+        cash = db.execute("SELECT cash FROM users WHERE id = :id", id=session["user_id"])
+        if not cash or float(cash[0]["cash"]) < quote["price"] * quantity:
+            return apology("Not enough cash!")
+
+        # update user's cash    
+        updateCash = db.execute("UPDATE users SET cash = cash - :purchase WHERE id = :id", purchase=quote["price"] * float(quantity), id=session["user_id"])
+        if updateCash == 0:
+            return apology("cash error, could not complete purchase")
+
+        # update transaction history
+        history = db.execute("INSERT INTO history (symbol, shares, price, id) VALUES (:symbol, :shares, :price, :id)", \
+                            symbol=quote["symbol"], shares=quantity, price=usd(quote["price"]), id=session["user_id"])
+        if not history:
+            return apology("history error, could not complete purchase")
+
+        # update portfolio
+        shares = db.execute("SELECT shares FROM portfolio WHERE id = :id and symbol = :symbol", \
+                            id=session["user_id"], symbol=quote["symbol"])
+        if not shares:
+            db.execute("INSERT INTO portfolio (symbol, company, shares, price, total, id) \
+                        VALUES (:symbol, :company, :shares, :price, :total, :id)", \
+                        symbol=quote["symbol"], company=quote["name"], shares=quantity, price=usd(quote["price"]), total=quote["price"] * quantity, id=session["user_id"])
+        else:
+            db.execute("UPDATE portfolio SET shares = shares + :shares WHERE id = :id AND \
+                        symbol = :symbol", shares=quantity, id=session["user_id"], symbol=quote["symbol"])
+
+        return render_template("buy.html")
+    else:
+        return render_template("buy.html")
 
 
 @app.route("/history")
