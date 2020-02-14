@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Quote
+{% endblock %}
+
+{% block main %}
+    <h3>Enter stock symbol:</h1>
+    <form action="/quote" method="POST">
+        <div class="form-group">
+            <input autocomplete="off" autofocus class="form-control" name="symbol" placeholder="AAPL" type="text" required>
+        </div>
+        <button class="btn btn-primary" type="submit">Check Price</button>
+    </form>
+    <div>
+      A share of {{ quote.name }} ({{ quote.symbol }}) costs {{ quote.price }}.
+    </div>
+{% endblock %}
