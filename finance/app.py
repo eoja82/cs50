@@ -44,7 +44,36 @@ if not os.environ.get("API_KEY"):
 @login_required
 def index():
     """Show portfolio of stocks"""
-    return apology("TODO")
+    # add up value of stocks in portfolio
+    portfolioValue = 0
+
+    # update portfolio
+    portfolio = db.execute("SELECT * FROM portfolio WHERE id = :id", id=session["user_id"])
+    for row in portfolio:
+        quote = lookup(row["symbol"])
+        # update price
+        updatePrice = db.execute("UPDATE portfolio SET price = :price WHERE id = :id AND symbol = :symbol", \
+                            price=usd(quote["price"]), id=session["user_id"], symbol=quote["symbol"])
+        if updatePrice == 0:
+            return apology("Could not update price.")
+        # updade total with current stock price
+        shares = db.execute("SELECT shares FROM portfolio WHERE id = :id AND symbol = :symbol", \
+                            id=session["user_id"], symbol=quote["symbol"])
+        updateTotal = db.execute("UPDATE portfolio SET total = :total WHERE id = :id AND symbol = :symbol", \
+                                total=usd(shares[0]["shares"] * quote["price"]), id=session["user_id"], symbol=quote["symbol"])
+        if updateTotal == 0:
+            return apology("Could not update total.")
+
+        portfolioValue += shares[0]["shares"] * quote["price"]
+    
+    # get amount of cash
+    cash = db.execute("SELECT cash FROM users WHERE id = :id", id=session["user_id"]) 
+
+    # get updated portfolio
+    updated = db.execute("SELECT * FROM portfolio WHERE  id = :id", id = session["user_id"])
+
+    return render_template("index.html", portfolio=updated, cash=usd(cash[0]["cash"]), \
+                            total=usd(portfolioValue + cash[0]["cash"]))
 
 
 @app.route("/buy", methods=["GET", "POST"])
@@ -81,7 +110,7 @@ def buy():
         if not shares:
             db.execute("INSERT INTO portfolio (symbol, company, shares, price, total, id) \
                         VALUES (:symbol, :company, :shares, :price, :total, :id)", \
-                        symbol=quote["symbol"], company=quote["name"], shares=quantity, price=usd(quote["price"]), total=quote["price"] * quantity, id=session["user_id"])
+                        symbol=quote["symbol"], company=quote["name"], shares=quantity, price=usd(quote["price"]), total=usd(quote["price"] * quantity), id=session["user_id"])
         else:
             db.execute("UPDATE portfolio SET shares = shares + :shares WHERE id = :id AND \
                         symbol = :symbol", shares=quantity, id=session["user_id"], symbol=quote["symbol"])
@@ -201,7 +230,13 @@ def register():
 @login_required
 def sell():
     """Sell shares of stock"""
-    return apology("TODO")
+    if request.method == "POST":
+        pass
+    else:
+        symbols = db.execute("SELECT symbol FROM portfolio WHERE id = :id", \
+                            id=session["user_id"])
+        return render_template("sell.html", symbols=symbols)
+
 
 
 def errorhandler(e):
