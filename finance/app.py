@@ -115,7 +115,7 @@ def buy():
             db.execute("UPDATE portfolio SET shares = shares + :shares WHERE id = :id AND \
                         symbol = :symbol", shares=quantity, id=session["user_id"], symbol=quote["symbol"])
 
-        return render_template("buy.html")
+        return redirect("/")
     else:
         return render_template("buy.html")
 
@@ -124,7 +124,9 @@ def buy():
 @login_required
 def history():
     """Show history of transactions"""
-    return apology("TODO")
+    history = db.execute("SELECT * FROM history WHERE id = :id ORDER BY transacted DESC", \
+                        id=session["user_id"])
+    return render_template("history.html", history=history)
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -148,11 +150,6 @@ def login():
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE username = :username",
                           username=request.form.get("username"))
-
-        # testing hash here
-        if not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            print(rows[0]["hash"])
-            return apology("hash does not match")
 
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
@@ -204,14 +201,8 @@ def register():
             return apology("Passwords did not match.")
         else:
             hash = generate_password_hash(password)
-            print(hash)
-            # check if hash is valid here
-            validhash = check_password_hash(hash, password)
-            print(f"valid hash: {validhash}")
-            if not validhash:
-                return apology("the hash did not validate")
-
             result = 0
+            
             # catch error when someone tries to register with a username already in use
             try:
                 result = db.execute("INSERT INTO users (username, hash) VALUES (:username, :hash)", username=name, hash=hash)
@@ -231,12 +222,79 @@ def register():
 def sell():
     """Sell shares of stock"""
     if request.method == "POST":
-        pass
+        quantity = int(request.form.get("quantity"))
+        if quantity <= 0:
+            return apology("Quantity must be greater than 0")
+
+        company = request.form.get("symbol")
+        quote = lookup(company)
+        if not quote:
+            return apology("Invalid Symbol")
+        
+        # update portfolio
+        shares = db.execute("SELECT shares FROM portfolio WHERE id = :id and symbol = :symbol", \
+                            id=session["user_id"], symbol=quote["symbol"])
+        if not shares or shares[0]["shares"] < quantity:
+            return apology("Not enough shares to sell")
+        else:
+            db.execute("UPDATE portfolio SET shares = shares - :shares \
+                       WHERE id = :id AND symbol = :symbol", \
+                       shares=quantity, id=session["user_id"], symbol=company)       
+        
+        # update user's cash    
+        updateCash = db.execute("UPDATE users SET cash = cash + :sale WHERE id = :id", \
+                                sale=quote["price"] * float(quantity), id=session["user_id"])
+        if updateCash == 0:
+            return apology("cash error")
+
+        # update transaction history
+        history = db.execute("INSERT INTO history (symbol, shares, price, id) VALUES (:symbol, :shares, :price, :id)", \
+                            symbol=quote["symbol"], shares="-" + str(quantity), price=usd(quote["price"]), id=session["user_id"])
+        if not history:
+            return apology("history error")
+
+        # delete stock from portfolio if no shares left
+        currShares = db.execute("SELECT shares FROM portfolio WHERE id = :id \
+                                AND symbol = :symbol", \
+                                id=session["user_id"], symbol=company)
+        if currShares[0]["shares"] == 0:
+            db.execute("DELETE FROM portfolio WHERE id = :id AND symbol = :symbol", \
+                        id=session["user_id"], symbol=company)
+        
+        return redirect("/")
     else:
         symbols = db.execute("SELECT symbol FROM portfolio WHERE id = :id", \
                             id=session["user_id"])
         return render_template("sell.html", symbols=symbols)
 
+# allow user to change password
+@app.route("/password", methods=["GET", "POST"])
+@login_required
+def password():
+    if request.method == "POST":
+        # check if old password is correct
+        oldPassword = request.form.get("oldPassword")
+        oldHash = db.execute("SELECT hash FROM users WHERE id = :id", id=session["user_id"])
+        validateOld = check_password_hash(oldHash[0]["hash"], oldPassword)
+        if validateOld == False:
+            return apology("Old password not correct.")
+        
+        # check that new password and confirmation match
+        newPassword = request.form.get("newPassword")
+        confirmation = request.form.get("confirmation")
+        if newPassword != confirmation:
+            return apology("New passwords did not match.")
+        
+        # update user's hash/password
+        hash = generate_password_hash(newPassword)
+        user = db.execute("UPDATE users SET hash = :hash WHERE id = :id", \
+                          hash=hash, id=session["user_id"])
+        if user == 1:
+            return render_template("password.html", message="Password changed.")
+        else:
+            return render_template("password.html", message="Could not change password.")
+    else:
+        return render_template("password.html", message="")
 
 
 def errorhandler(e):
