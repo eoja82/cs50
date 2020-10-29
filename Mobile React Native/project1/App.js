@@ -2,7 +2,7 @@
 /* https://snack.expo.io/R1ST9Ct4U */
 import { StatusBar } from 'expo-status-bar'
 import React, { useState, useEffect } from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, Vibration, View } from 'react-native'
 import { AntDesign } from '@expo/vector-icons'
 import { FontAwesome } from '@expo/vector-icons'
 
@@ -89,15 +89,17 @@ export default function App() {
     }
   }
   useEffect(() => {
-    //console.log("tiemr in useEffect: " + timer)
-    if (status === "Work" && timer < 1496) {
-      // buzz
+    console.log("timer: " + timer, "status: " + status)
+    if (status === "Work" && timer < 0) {
+      console.log("vibrate")
+      Vibration.vibrate([500, 500, 500])
       setStatus("Break")
       setTimer(breakTime)
-      clearInterval(intervalId)
+      //clearInterval(intervalId)
     }
     if (status === "Break" && timer < 0) {
-      // buzz
+      console.log("vibrate")
+      Vibration.vibrate([500, 500, 500])
       setStatus("Work")
       setTimer(workTime)
     }
