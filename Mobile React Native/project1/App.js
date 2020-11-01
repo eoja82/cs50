@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar'
 import React, { useState, useEffect } from 'react'
 import { StyleSheet, Text, Vibration, View } from 'react-native'
 
-import TimerControl, { PlayPauseReset } from "./components/timeControl"
+import TimerControl, { PlayPauseReset } from "./components/TimeControl"
 import ClockDisplay from "./components/ClockDisplay"
 
 let intervalId = null
@@ -22,20 +22,35 @@ export default function App() {
     setTimer(1500)
     setStatus("Work")
     setRunning(false)
-    console.log(intervalId)
+    //console.log(intervalId)
     clearInterval(intervalId)
   }
   const breakUp = () => {
-    if (breakTime < 3600) setBreakTime(breakTime + 60)
+    if (breakTime < 3600) setBreakTime(prevBreakTime => {
+      if (status === "Break" && !running) setTimer(prevBreakTime + 60)
+      return prevBreakTime + 60
+    })
   }
   const breakDown = () => {
-    if (breakTime > 60) setBreakTime(breakTime - 60)
+    if (breakTime > 60) setBreakTime(prevBreakTime => {
+      if (status === "Break" && !running) setTimer(prevBreakTime - 60)
+      return prevBreakTime - 60
+    })
   }
   const workUp = () => {
-    if (workTime < 3600) setWorkTime(workTime + 60)
+    if (workTime < 3600) setWorkTime(prevWorkTime => {
+      if (status === "Work" && !running) setTimer(prevWorkTime + 60)
+      return prevWorkTime + 60
+    })
   }
   const workDown = () => {
-    if (workTime > 60) setWorkTime(workTime - 60)
+    //console.log("workTime: " + workTime)
+    if (workTime > 60) {
+      setWorkTime(prevWorkTime => {
+        if (status === "Work" && !running) setTimer(prevWorkTime - 60)
+        return prevWorkTime - 60
+      })
+    }
   }
   const playPause = () => {
     if (!running) {
@@ -54,15 +69,15 @@ export default function App() {
     setTimer(timer => timer - 1)
   }
   useEffect(() => {
-    console.log("timer: " + timer, "status: " + status)
-    if (status === "Work" && timer < 1497) {
+    //console.log("timer: " + timer, "status: " + status)
+    if (status === "Work" && timer < 0) {
       console.log("vibrate")
       Vibration.vibrate([500, 500, 500])
       setStatus("Break")
       setTimer(breakTime)
       //clearInterval(intervalId)
     }
-    if (status === "Break" && timer < 297) {
+    if (status === "Break" && timer < 0) {
       console.log("vibrate")
       Vibration.vibrate([500, 500, 500])
       setStatus("Work")
@@ -74,13 +89,13 @@ export default function App() {
     <View style={styles.container}>
       <Text style={styles.heading}>Pomodoro Clock</Text>
       <TimerControl 
-        text={"Set Break Time"} 
+        text={"Set Break Time: "} 
         time={breakTime / 60} 
         funcOne={breakUp} 
         funcTwo={breakDown}
       />
       <TimerControl 
-        text={"Set Work Time"}
+        text={"Set Work Time: "}
         time={workTime / 60}
         funcOne={workUp}
         funcTwo={workDown}
@@ -91,7 +106,13 @@ export default function App() {
         reset={reset}
       />
       <Text style={styles.status}>{`${status} Time Remaining`}</Text>
-      <ClockDisplay timer={timer} />
+      <ClockDisplay 
+        timer={timer} 
+        running={running}
+        workTime={workTime}
+        breakTime={breakTime}
+        status={status}
+      />
       <StatusBar style="auto" />
     </View>
   );
