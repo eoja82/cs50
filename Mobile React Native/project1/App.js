@@ -68,20 +68,19 @@ export default function App() {
     //console.log("coutdown timer " + timer)
     setTimer(timer => timer - 1)
   }
+  const timerAtZero = (newStatus, newTimer) => {
+    console.log("vibrate")
+    Vibration.vibrate([500, 500, 500])
+    setStatus(newStatus)
+    setTimer(newTimer)
+    //clearInterval(intervalId)
+  }
   useEffect(() => {
-    //console.log("timer: " + timer, "status: " + status)
     if (status === "Work" && timer < 0) {
-      console.log("vibrate")
-      Vibration.vibrate([500, 500, 500])
-      setStatus("Break")
-      setTimer(breakTime)
-      //clearInterval(intervalId)
+      timerAtZero("Break", breakTime)
     }
     if (status === "Break" && timer < 0) {
-      console.log("vibrate")
-      Vibration.vibrate([500, 500, 500])
-      setStatus("Work")
-      setTimer(workTime)
+      timerAtZero("Work", workTime)
     }
   })
 
