@@ -8,3 +8,7 @@ def index(request):
         "entries": util.list_entries()
     })
 
+def wikipage(request, wiki):
+    return render(request, "encyclopedia/wikipage.html", {
+        "wiki": wiki.capitalize(), "file": util.get_entry(wiki.lower())
+    })
