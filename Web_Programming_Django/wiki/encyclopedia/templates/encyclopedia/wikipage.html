@@ -1,11 +1,9 @@
 {% extends "encyclopedia/layout.html" %}
 
 {% block title %}
-    {{ wiki }}
+    {{ title }}
 {% endblock %}
 
 {% block body %}
-    <!-- render md -->
-    <h1>render wiki</h1>
-
+    {{ file | safe }}
 {% endblock %}
