@@ -1,0 +1,12 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    {{ wiki }} Not Found
+{% endblock %}
+
+{% block body %}
+  <h1 style="text-align: center; margin: 3rem;">
+    Sorry, there is no information available for "{{ wiki }}".
+  </h1>
+  <a href="{% url 'index' %}" style="display: block; text-align: center;">Wiki Home</a>
+{% endblock %}

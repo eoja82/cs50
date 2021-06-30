@@ -1,6 +1,5 @@
 import markdown
 from django.shortcuts import render
-from django.http import HttpResponseNotFound
 
 from . import util
 
@@ -19,4 +18,6 @@ def wikipage(request, wiki):
             "file": md, "title": title
         })
     else:
-        return HttpResponseNotFound(f"<h1 style='text-align: center; margin: 3rem;'>Sorry, there is no information available for \"{wiki.lower()}\".</h1>")
+        return render(request, "encyclopedia/notFound.html", {
+            "wiki": wiki.lower()
+        }, status="404")
