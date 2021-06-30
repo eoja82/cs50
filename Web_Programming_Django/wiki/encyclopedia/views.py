@@ -1,12 +1,25 @@
+from django.forms import utils
 import markdown
+from django import forms
 from django.shortcuts import render
+from django.http import HttpResponseRedirect, HttpResponse
+from django.urls import reverse
 
 from . import util
 
 def index(request):
-    return render(request, "encyclopedia/index.html", {
-        "entries": util.list_entries()
-    })
+    if request.method == "POST":
+        query = request.POST["q"].strip()
+        term = util.get_entry(query.lower())
+        print("query = ", query)
+        if term != None:
+            return HttpResponseRedirect(reverse("wikipage", args={query}))
+        else:
+            return HttpResponse("not found")
+    else:
+        return render(request, "encyclopedia/index.html", {
+            "entries": util.list_entries()
+        })
 
 def wikipage(request, wiki):
     entry = util.get_entry(wiki.lower())
