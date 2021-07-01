@@ -1,0 +1,21 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Add New Wiki
+{% endblock %}
+
+{% block body %}
+    <h1>Add A New Wiki Entry</h1>
+
+    <form>
+      <label for="title">Title</label>
+      <br>
+      <input type="text" name="title" id="title" placeholder="Title" required>
+      <br>
+      <label for="markdown">Enter Text In Markdown Format</label>
+      <textarea name="markdown" id="markdown" placeholder="Markdown" required></textarea>
+      <br>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+{% endblock %}
