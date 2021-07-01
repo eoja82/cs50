@@ -11,11 +11,17 @@ def index(request):
     if request.method == "POST":
         query = request.POST["q"].strip()
         term = util.get_entry(query.lower())
-        print("query = ", query)
         if term != None:
             return HttpResponseRedirect(reverse("wikipage", args={query}))
         else:
-            return HttpResponse("not found")
+            matches = []
+            entries = util.list_entries()
+            for entry in entries:
+                if entry.lower().find(query.lower()) >= 0:
+                    matches.append(entry)
+            return render(request, "encyclopedia/searchResults.html", {
+                "matches": matches, "query": query
+            })
     else:
         return render(request, "encyclopedia/index.html", {
             "entries": util.list_entries()
