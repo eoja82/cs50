@@ -40,3 +40,9 @@ def wikipage(request, wiki):
         return render(request, "encyclopedia/notFound.html", {
             "wiki": wiki.lower()
         }, status="404")
+
+def newWiki(request):
+    if request.method == "POST":
+        pass
+    else:
+        return render(request, "encyclopedia/newWiki.html")
