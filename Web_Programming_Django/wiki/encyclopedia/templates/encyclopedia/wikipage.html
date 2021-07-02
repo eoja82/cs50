@@ -5,5 +5,10 @@
 {% endblock %}
 
 {% block body %}
-    {{ file | safe }}
+    <div>
+        {{ file | safe }}
+    </div>
+    <a href="/wikiEdit/{{ title }}">
+        <button class="btn btn-primary">Edit Page</button>
+    </a>
 {% endblock %}
