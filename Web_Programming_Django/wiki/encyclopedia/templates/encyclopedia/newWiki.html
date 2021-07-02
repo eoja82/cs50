@@ -7,15 +7,20 @@
 {% block body %}
     <h1>Add A New Wiki Entry</h1>
 
-    <form>
+    <form action="{% url 'newWiki' %}" method="POST">
+      {% csrf_token %}
       <label for="title">Title</label>
       <br>
       <input type="text" name="title" id="title" placeholder="Title" required>
       <br>
       <label for="markdown">Enter Text In Markdown Format</label>
-      <textarea name="markdown" id="markdown" placeholder="Markdown" required></textarea>
+      <textarea name="markdown" id="markdown" placeholder="Markdown" class="form-control w-75" rows="15" required></textarea>
       <br>
       <button type="submit" class="btn btn-primary">Submit</button>
     </form>
+
+    {% if submitError %}
+      <p style="color: red;">An entry already exists for {{ title }}.</p>
+    {% endif %}
 
 {% endblock %}

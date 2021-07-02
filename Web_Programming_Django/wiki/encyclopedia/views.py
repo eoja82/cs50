@@ -41,8 +41,19 @@ def wikipage(request, wiki):
             "wiki": wiki.lower()
         }, status="404")
 
-def newWiki(request):
+def newWiki(request, **kwargs):
     if request.method == "POST":
-        pass
+        title = request.POST["title"].strip()
+        md = request.POST["markdown"]
+        entries = [x.lower() for x in util.list_entries()]
+        print(title, entries)
+        if title.lower() in entries:
+            print(f"entry already exists for {title}")
+            return render(request, "encyclopedia/newWiki.html", {
+                "submitError": True, "title": title
+            })
+        else:
+            util.save_entry(title, md)
+            return HttpResponseRedirect(reverse("wikipage", args={title}))
     else:
         return render(request, "encyclopedia/newWiki.html")
