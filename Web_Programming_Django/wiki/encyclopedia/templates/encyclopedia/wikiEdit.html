@@ -1,0 +1,19 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+    Edit Wiki Entry: {{ title }}
+{% endblock %}
+
+{% block body %}
+    <h1>Edit Wiki Entry</h1>
+
+    <form action="/wikiEdit/{{ title }}" method="POST">
+      {% csrf_token %}
+      <input type="text" value="{{ title }}" name="title" hidden>
+      <label for="markdown">{{ title }}:</label>
+      <textarea name="markdown" id="markdown" class="form-control w-75" rows="15" required>{{ file }}</textarea>
+      <br>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+{% endblock %}
