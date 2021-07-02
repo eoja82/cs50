@@ -57,3 +57,15 @@ def newWiki(request, **kwargs):
             return HttpResponseRedirect(reverse("wikipage", args={title}))
     else:
         return render(request, "encyclopedia/newWiki.html")
+
+def wikiEdit(request, wiki):
+    if request.method == "POST":
+        title = request.POST["title"]
+        md = request.POST["markdown"]
+        util.save_entry(title, md)
+        return HttpResponseRedirect(reverse("wikipage", args={title}))
+    else:    
+        file = util.get_entry(wiki)
+        return render(request,  "encyclopedia/wikiEdit.html", {
+            "title": wiki, "file": file
+        })
