@@ -73,5 +73,6 @@ def wikiEdit(request, wiki):
 
 def randomPage(request):
     entries = util.list_entries()
-    index = random.randint(0, len(entries) + 1)
-    page = entries[index]
+    index = random.randint(0, len(entries) - 1)
+    print("index = ", index)
+    return HttpResponseRedirect(reverse("wikipage", args={entries[index]}))
