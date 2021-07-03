@@ -4,6 +4,7 @@ from django import forms
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from django.urls import reverse
+import random
 
 from . import util
 
@@ -69,3 +70,8 @@ def wikiEdit(request, wiki):
         return render(request,  "encyclopedia/wikiEdit.html", {
             "title": wiki, "file": file
         })
+
+def randomPage(request):
+    entries = util.list_entries()
+    index = random.randint(0, len(entries) + 1)
+    page = entries[index]
