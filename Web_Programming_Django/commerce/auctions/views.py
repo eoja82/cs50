@@ -1,14 +1,18 @@
+from typing import List
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
+from django.db.utils import OperationalError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User
+from .models import Bids, Comments, Listings, User
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    return render(request, "auctions/index.html", {
+        "listings": Listings.objects.all()
+    })
 
 
 def login_view(request):
@@ -61,3 +65,25 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+def new_auction(request):
+    if request.method == "POST":
+        user = request.user
+        title = request.POST["title"]
+        description = request.POST["description"]
+        photoURL = request.POST["photoURL"]
+        category = request.POST["category"]
+        starting_bid = request.POST["starting_bid"]
+        
+        listing = Listings(user=user, title=title, description=description, photoURL=photoURL, category=category, starting_bid=starting_bid)
+        listing.save()
+
+        return HttpResponseRedirect(reverse("index"))
+    else:
+        categories = []
+        for x in Listings.CATEGORY_CHOICES:
+            categories.append(x[1])
+        return render(request, "auctions/add_listing.html", {
+            "categories": categories
+        })
