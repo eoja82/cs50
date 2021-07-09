@@ -1,0 +1,35 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+  Create A New Auction
+{% endblock %}
+
+{% block body %}
+  <h1>Create A New Auction</h1>
+
+  <form action="{% url 'new_auction' %}" method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      <input type="text" class="form-control" name="title" placeholder="Title" maxlength="100" required>
+    </div>
+    <div class="form-group">
+      <textarea class="form-control" name="description" placeholder="Describe Your Item" rows="10" maxlength="2000" required></textarea>
+    </div>
+    <div class="form-group">
+      <input type="url" name="photoURL" class="form-control" placeholder="URL Photo Link (optional)">
+    </div>
+    <div class="form-group">
+      <label for="category">Category:</label>
+      <select id="category" name="category" class="form-control">
+        {% for category in categories %}
+          <option value="{{ category }}">{{ category }}</option>
+        {% endfor %}
+      </select>
+    </div>    
+    <div class="form-group">
+      <label for="startingBid">Starting Bid:</label>
+      <input type="number" class="form-control" name="starting_bid" id="startingBid" placeholder="0.00" min="1" max="1000000000" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+  </form>
+{% endblock %}
