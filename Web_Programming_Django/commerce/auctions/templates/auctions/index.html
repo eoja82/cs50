@@ -2,6 +2,21 @@
 
 {% block body %}
     <h2>Active Listings</h2>
-
-    TODO
+    
+        {% for listing in listings %}
+            <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+                <h4 class="card-title">{{ listing.title }}</h4>
+                {% if listing.photoURL %}
+                    <img class="" src="{{ listing.photoURL }}" alt="Listing Photo" style="width: 200px;">
+                {% else %}
+                    <p class="noPhoto">No Photo</p>
+                {% endif %}
+                <p class="card-text">{{ listing.description }}</p>
+                <p class="card-text">Price: {{ listing.starting_bid}}</p>
+                <p class="card-text text-muted">{{ listing.date_created }}</p>
+            </div>
+        {% empty %}
+            <p>No listings available.</p>
+        {% endfor %}
+    
 {% endblock %}
