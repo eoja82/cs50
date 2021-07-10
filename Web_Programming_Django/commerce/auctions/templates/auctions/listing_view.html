@@ -1,0 +1,51 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+  Listing: {{ listing.title }}
+{% endblock %}
+
+{% block body %}
+  <h1>{{ listing.title }}</h1>
+  
+  {% if listing.photoURL %}
+  <img src="{{ listing.photoURL }}" alt="Photo of {{ listing.title }}" width="600">
+  {% else %}
+    <p>No photo available.</p>
+  {% endif %}
+
+  <h5>Description:</h5>
+  <p>{{ listing.description }}</p>
+  
+  {% if bids %}
+    <p>Current Bid: $</p>
+  {% else %}
+    <h5>Starting Bid:</h5>
+    <p>${{ listing.starting_bid }}</p>
+  {% endif %}
+  
+  <form action="" method="POST">
+    {% csrf_token %}
+    <div class="form-group">
+      {% if bids %}
+        <label for="bid">bid label</label>
+      {% else %}
+        <label for="bid">0 Bids so far.</label>
+      {% endif %}
+      <input class="form-control" type="number" name="bid" id="bid" max="9999999999" placeholder="Your Bid" required>
+    </div>
+    <button class="btn btn-primary" type="submit">Place Bid</button>
+  </form>
+  <h5>{{ message }}</h5>
+  <h5 style="margin-top: 1rem;">Details:</h5>
+  <ul>
+    <li>Listed by: {{ listing.user }}</li>
+    <li>Category: 
+      {% if listing.category != "Optional" %}
+        {{ listing.category }}
+      {% else %}
+        No Category Listed
+      {% endif %}
+    </li>
+    <li>Date Listed: {{ listing.date_created }}</li>
+  </ul>
+{% endblock %}
