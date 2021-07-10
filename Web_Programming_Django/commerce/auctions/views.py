@@ -1,7 +1,7 @@
 from typing import List
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.db.utils import OperationalError
+from django.db.utils import Error, OperationalError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
@@ -11,7 +11,7 @@ from .models import Bids, Comments, Listings, User
 
 def index(request):
     return render(request, "auctions/index.html", {
-        "listings": Listings.objects.all()
+        "listings": Listings.objects.all().order_by("-date_created")
     })
 
 
@@ -87,3 +87,54 @@ def new_auction(request):
         return render(request, "auctions/add_listing.html", {
             "categories": categories
         })
+
+
+def listing_view(request, listing_id):
+    if request.method == "POST":
+        # place bid
+        user = request.user
+        bid = request.POST["bid"]
+        listing = request.POST["listing"]
+
+        bids = Bids.objects.filter(listing=listing)
+
+        if not bids:
+            return render(request, "auctions/listing_view.html", {
+                "listing": listing, "bids": False, "message": ""
+            })
+        else:
+            return render(request, "auctions/listing_view.html", {
+                "listing": listing, "bids": True, "message": ""
+            })
+    elif request.method == "PUT":
+        # add to watchlist
+        pass
+    else:
+        def get_listings(listing_id):
+            try:
+                return Listings.objects.get(pk=listing_id)
+            except:
+                return None
+
+        listing = get_listings(listing_id)
+        if not listing:
+            return HttpResponseRedirect(reverse("index"))
+
+        def get_bids(listing):
+            try:
+                return Bids.objects.filter(listing=listing)
+            except:
+                return 0  
+            
+        bids = get_bids(listing.pk).order_by("bid")
+        high_bid = None
+        bid_count = None
+        high_bidder = None
+        if bids:
+            high_bid = bids.latest("bid")
+            bid_count = bids.count()
+            high_bidder = bids[0].user
+
+        return render(request, "auctions/listing_view.html", {
+        "listing": listing, "bid_count": bid_count, "high_bid": high_bid, "high_bidder": high_bidder, "message": ""
+        })   
