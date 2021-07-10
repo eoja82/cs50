@@ -16,8 +16,9 @@
   <h5>Description:</h5>
   <p>{{ listing.description }}</p>
   
-  {% if bids %}
-    <p>Current Bid: $</p>
+  {% if high_bid %}
+    <h5>Current bid:</h5>
+    <p>${{ high_bid.bid }}</p>
   {% else %}
     <h5>Starting Bid:</h5>
     <p>${{ listing.starting_bid }}</p>
@@ -26,9 +27,9 @@
   <form action="" method="POST">
     {% csrf_token %}
     <div class="form-group">
-      {% if bid_count %}
+      {% if high_bidder %}
         <label for="bid">
-          {{ bid_count }} bid(s) so far.
+          {{ bid_count }} bid(s) so far.  
           {% if high_bidder == user %}
             You are the highest bidder.
           {% else %}
@@ -40,7 +41,7 @@
       {% endif %}
       <input class="form-control" type="number" name="bid" id="bid" max="9999999999" placeholder="Your Bid" required>
     </div>
-    <input type="text" name="listing" value="{{ listing.pk }}" hidden>
+    <input type="text" name="listing_id" value="{{ listing.pk }}" hidden>
     <button 
       class="btn btn-primary" 
       type="submit" 
@@ -50,7 +51,7 @@
         Place Bid
       </button>
   </form>
-  <h5>{{ message }}</h5>
+  <h5 style="color: red;">{{ message }}</h5>
   <h5 style="margin-top: 1rem;">Details:</h5>
   <ul>
     <li>Listed by: {{ listing.user }}</li>
