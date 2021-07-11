@@ -1,26 +1,26 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
-    <h2>Active Listings</h2>
-    
-        {% for listing in listings %}
-            <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
-                <a href="{% url 'listing_view' listing.pk %}">
-                    <h4 class="card-title" style="color: black;">{{ listing.title }}</h4>
-                </a>
-                {% if listing.photoURL %}
-                    <a href="{% url 'listing_view' listing.pk %}">
-                        <img class="" src="{{ listing.photoURL }}" alt="Listing Photo" style="width: 200px;">
-                    </a>
-                {% else %}
-                    <p class="noPhoto">No Photo</p>
-                {% endif %}
-                <p class="card-text">{{ listing.description }}</p>
-                <p class="card-text">Price: {{ listing.starting_bid}}</p>
-                <p class="card-text text-muted">{{ listing.date_created }}</p>
-            </div>
-        {% empty %}
-            <p>No listings available.</p>
-        {% endfor %}
-    
+<h2>Active Listings</h2>
+
+{% for listing in listings %}
+  <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+    <a href="{% url 'listing_view' listing.pk %}">
+      <h4 class="card-title" style="color: black;">{{ listing.title }}</h4>
+    </a>
+    {% if listing.photoURL %}
+      <a href="{% url 'listing_view' listing.pk %}">
+        <img class="" src="{{ listing.photoURL }}" alt="Listing Photo" style="width: 200px;">
+      </a>
+    {% else %}
+      <p class="noPhoto">No Photo</p>
+    {% endif %}
+    <p class="card-text">{{ listing.description }}</p>
+    <p>Starting Bid: ${{ listing.starting_bid }}</p>
+    <p class="card-text text-muted">{{ listing.date_created }}</p>
+  </div>
+{% empty %}
+  <p>No listings available.</p>
+{% endfor %}
+
 {% endblock %}
