@@ -90,7 +90,7 @@ def new_auction(request):
         listing = Listings(user=user, title=title, description=description, photoURL=photoURL, category=category, starting_bid=starting_bid)
         listing.save()
 
-        return HttpResponseRedirect(reverse("index"))
+        return HttpResponseRedirect(reverse("listing_view", args=(listing.id,)))
     else:
         categories = []
         for x in Listings.CATEGORY_CHOICES:
