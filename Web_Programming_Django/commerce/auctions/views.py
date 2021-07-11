@@ -6,7 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import Bids, Comments, Listings, User
+from .models import Bid, Comment, Listings, User
 
 def get_listing(listing_id):
     try:
@@ -16,7 +16,7 @@ def get_listing(listing_id):
 
 def get_bids(listing):
     try:
-        return Bids.objects.filter(listing=listing)
+        return Bid.objects.filter(listing=listing)
     except:
         return 0
 
@@ -111,24 +111,24 @@ def listing_view(request, listing_id):
         min_bid = 0
         if listing:
             min_bid = listing.starting_bid
-        bids = get_bids(listing.pk).order_by("bid")
+        bids = get_bids(listing.pk).order_by("bids")
         high_bid = None
         bid_count = None
         high_bidder = None
 
         if bids:
-            high_bid = bids.latest("bid")
+            high_bid = bids.latest("bids")
             bid_count = bids.count()
             high_bidder = bids[0].user
 
         if not bids:
             if bid >= min_bid:
                 # save bid
-                newBid = Bids(listing=listing, user=user, bid=bid)
+                newBid = Bid(listing=listing, user=user, bids=bid)
                 newBid.save()
 
-                bids = get_bids(listing.pk).order_by("bid")
-                high_bid = bids.latest("bid")
+                bids = get_bids(listing.pk).order_by("bids")
+                high_bid = bids.latest("bids")
                 bid_count = bids.count()
                 high_bidder = bids[0].user
 
@@ -140,13 +140,13 @@ def listing_view(request, listing_id):
                     "listing": listing, "message": f"Bid must be at least ${min_bid}."
                 })
         else:
-            if bid > high_bid.bid:
+            if bid > high_bid.bids:
                 # save bid
-                newBid = Bids(listing=listing, user=user, bid=bid)
+                newBid = Bid(listing=listing, user=user, bids=bid)
                 newBid.save()
 
-                bids = get_bids(listing.pk).order_by("bid")
-                high_bid = bids.latest("bid")
+                bids = get_bids(listing.pk).order_by("bids")
+                high_bid = bids.latest("bids")
                 bid_count = bids.count()
                 high_bidder = bids[0].user
 
@@ -155,7 +155,7 @@ def listing_view(request, listing_id):
                 })
             else:
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "high_bidder": high_bidder, "high_bid": high_bid, "message": f"Your bid must be greater than ${high_bid.bid}"
+                    "listing": listing, "high_bidder": high_bidder, "high_bid": high_bid, "bid_count": bid_count, "message": f"Your bid must be greater than ${high_bid.bids}"
                 })
     elif request.method == "PUT":
         # add to watchlist
@@ -165,15 +165,15 @@ def listing_view(request, listing_id):
         if not listing:
             return HttpResponseRedirect(reverse("index"))
     
-        bids = get_bids(listing.pk).order_by("bid")
+        bids = get_bids(listing.pk).order_by("bids")
         high_bid = None
         bid_count = None
         high_bidder = None
         if bids:
-            high_bid = bids.latest("bid")
+            high_bid = bids.latest("bids")
             bid_count = bids.count()
             high_bidder = bids[0].user
-
+        
         return render(request, "auctions/listing_view.html", {
             "listing": listing, "bid_count": bid_count, "high_bid": high_bid, "high_bidder": high_bidder
         })   
