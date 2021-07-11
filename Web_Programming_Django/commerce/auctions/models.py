@@ -22,6 +22,7 @@ class Listings(models.Model):
     photoURL = models.URLField(blank=True)
     category = models.CharField(max_length=15, choices=CATEGORY_CHOICES, blank=True)
     starting_bid = models.DecimalField(max_digits=12, decimal_places=2)
+    highest_bid = models.DecimalField(max_digits=12, decimal_places=2, blank=True, default=0)
     date_created = models.DateField(auto_now=True)
 
     def __str__(self):
