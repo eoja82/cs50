@@ -108,47 +108,52 @@ def listing_view(request, listing_id):
         listing_id = request.POST["listing_id"]
 
         listing = get_listing(listing_id)
-        min_bid = 0
-        if listing:
-            min_bid = listing.starting_bid
-        bids = get_bids(listing.pk).order_by("bids")
-        high_bid = None
-        bid_count = None
-        high_bidder = None
 
-        if bids:
-            high_bid = bids.latest("bids")
-            bid_count = bids.count()
-            high_bidder = bids[0].user
+        try:
+            bids = listing.bids.all()
+        except Listings.DoesNotExist:
+            pass
 
         if not bids:
-            if bid >= min_bid:
+            if bid >= listing.starting_bid:
                 # save bid
                 newBid = Bid(listing=listing, user=user, bids=bid)
                 newBid.save()
 
-                bids = get_bids(listing.pk).order_by("bids")
+                # save the new high bid
+                listing.highest_bid = bid
+                listing.save()
+
+                bids = listing.bids.all()
                 high_bid = bids.latest("bids")
                 bid_count = bids.count()
-                high_bidder = bids[0].user
+                high_bidder = bids.latest("bids").user
 
                 return render(request, "auctions/listing_view.html", {
                     "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count
                 })
             else:
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "message": f"Bid must be at least ${min_bid}."
+                    "listing": listing, "message": f"Bid must be at least ${listing.starting_bid}."
                 })
         else:
+            high_bid = bids.latest("bids")
+            bid_count = bids.count()
+            high_bidder = bids.latest("bids").user
+
             if bid > high_bid.bids:
                 # save bid
                 newBid = Bid(listing=listing, user=user, bids=bid)
                 newBid.save()
 
-                bids = get_bids(listing.pk).order_by("bids")
+                # save new high bid
+                listing.highest_bid = bid
+                listing.save()
+
+                bids = listing.bids.all()
                 high_bid = bids.latest("bids")
                 bid_count = bids.count()
-                high_bidder = bids[0].user
+                high_bidder = bids.latest("bids").user
 
                 return render(request, "auctions/listing_view.html", {
                     "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count
@@ -165,14 +170,19 @@ def listing_view(request, listing_id):
         if not listing:
             return HttpResponseRedirect(reverse("index"))
     
-        bids = get_bids(listing.pk).order_by("bids")
+        try:
+            bids = listing.bids.all()
+        except Listings.DoesNotExist:
+            pass
+
         high_bid = None
         bid_count = None
         high_bidder = None
+
         if bids:
             high_bid = bids.latest("bids")
             bid_count = bids.count()
-            high_bidder = bids[0].user
+            high_bidder = bids.latest("bids").user
         
         return render(request, "auctions/listing_view.html", {
             "listing": listing, "bid_count": bid_count, "high_bid": high_bid, "high_bidder": high_bidder
