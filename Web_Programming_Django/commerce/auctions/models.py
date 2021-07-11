@@ -1,6 +1,5 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-import datetime
 
 
 class User(AbstractUser):
@@ -28,19 +27,19 @@ class Listings(models.Model):
     def __str__(self):
         return f"User: {self.user}, Listing: {self.title}."
 
-class Bids(models.Model):
-    listing = models.ForeignKey(Listings, on_delete=models.CASCADE) # related_name
+class Bid(models.Model):
+    listing = models.ForeignKey(Listings, related_name="bids", on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    bid = models.DecimalField(max_digits=12, decimal_places=2)
+    bids = models.DecimalField(max_digits=12, decimal_places=2)
     date_created = models.DateField(auto_now=True)
 
     def __str__(self):
-        return f"User: {self.user}, Listing: {self.listing}, Bid: {self.bid}"
+        return f"User: {self.user}, Listing: {self.listing}, Bid: {self.bids}"
 
-class Comments(models.Model):
-    listing = models.ForeignKey(Listings, on_delete=models.CASCADE) # related_name
+class Comment(models.Model):
+    listing = models.ForeignKey(Listings, related_name="comments", on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    comment = models.TextField(max_length=1000)
+    comments = models.TextField(max_length=1000)
     date_created = models.DateField(auto_now=True)
 
     def __str__(self):
