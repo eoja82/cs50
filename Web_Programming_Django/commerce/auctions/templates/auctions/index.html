@@ -16,7 +16,11 @@
       <p class="noPhoto">No Photo</p>
     {% endif %}
     <p class="card-text">{{ listing.description }}</p>
-    <p>Starting Bid: ${{ listing.starting_bid }}</p>
+    {% if listing.highest_bid >= listing.starting_bid %}
+      <p>Current Bid: {{ listing.highest_bid }}</p>
+    {% else %}
+      <p>Starting Bid: ${{ listing.starting_bid }}</p>
+    {% endif %}
     <p class="card-text text-muted">{{ listing.date_created }}</p>
   </div>
 {% empty %}
