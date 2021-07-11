@@ -23,7 +23,7 @@ class Listings(models.Model):
     category = models.CharField(max_length=15, choices=CATEGORY_CHOICES, blank=True)
     starting_bid = models.DecimalField(max_digits=12, decimal_places=2)
     highest_bid = models.DecimalField(max_digits=12, decimal_places=2, blank=True, default=0)
-    date_created = models.DateField(auto_now=True)
+    date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
         return f"User: {self.user}, Listing: {self.title}."
