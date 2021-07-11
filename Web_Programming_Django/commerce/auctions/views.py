@@ -8,6 +8,17 @@ from django.urls import reverse
 
 from .models import Bids, Comments, Listings, User
 
+def get_listing(listing_id):
+    try:
+        return Listings.objects.get(pk=listing_id)
+    except:
+        return None
+
+def get_bids(listing):
+    try:
+        return Bids.objects.filter(listing=listing)
+    except:
+        return 0
 
 def index(request):
     return render(request, "auctions/index.html", {
@@ -93,39 +104,67 @@ def listing_view(request, listing_id):
     if request.method == "POST":
         # place bid
         user = request.user
-        bid = request.POST["bid"]
-        listing = request.POST["listing"]
+        bid = float(request.POST["bid"])
+        listing_id = request.POST["listing_id"]
 
-        bids = Bids.objects.filter(listing=listing)
+        listing = get_listing(listing_id)
+        min_bid = 0
+        if listing:
+            min_bid = listing.starting_bid
+        bids = get_bids(listing.pk).order_by("bid")
+        high_bid = None
+        bid_count = None
+        high_bidder = None
+
+        if bids:
+            high_bid = bids.latest("bid")
+            bid_count = bids.count()
+            high_bidder = bids[0].user
 
         if not bids:
-            return render(request, "auctions/listing_view.html", {
-                "listing": listing, "bids": False, "message": ""
-            })
+            if bid >= min_bid:
+                # save bid
+                newBid = Bids(listing=listing, user=user, bid=bid)
+                newBid.save()
+
+                bids = get_bids(listing.pk).order_by("bid")
+                high_bid = bids.latest("bid")
+                bid_count = bids.count()
+                high_bidder = bids[0].user
+
+                return render(request, "auctions/listing_view.html", {
+                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count
+                })
+            else:
+                return render(request, "auctions/listing_view.html", {
+                    "listing": listing, "message": f"Bid must be at least ${min_bid}."
+                })
         else:
-            return render(request, "auctions/listing_view.html", {
-                "listing": listing, "bids": True, "message": ""
-            })
+            if bid > high_bid.bid:
+                # save bid
+                newBid = Bids(listing=listing, user=user, bid=bid)
+                newBid.save()
+
+                bids = get_bids(listing.pk).order_by("bid")
+                high_bid = bids.latest("bid")
+                bid_count = bids.count()
+                high_bidder = bids[0].user
+
+                return render(request, "auctions/listing_view.html", {
+                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count
+                })
+            else:
+                return render(request, "auctions/listing_view.html", {
+                    "listing": listing, "high_bidder": high_bidder, "high_bid": high_bid, "message": f"Your bid must be greater than ${high_bid.bid}"
+                })
     elif request.method == "PUT":
         # add to watchlist
         pass
     else:
-        def get_listings(listing_id):
-            try:
-                return Listings.objects.get(pk=listing_id)
-            except:
-                return None
-
-        listing = get_listings(listing_id)
+        listing = get_listing(listing_id)
         if not listing:
             return HttpResponseRedirect(reverse("index"))
-
-        def get_bids(listing):
-            try:
-                return Bids.objects.filter(listing=listing)
-            except:
-                return 0  
-            
+    
         bids = get_bids(listing.pk).order_by("bid")
         high_bid = None
         bid_count = None
@@ -136,5 +175,5 @@ def listing_view(request, listing_id):
             high_bidder = bids[0].user
 
         return render(request, "auctions/listing_view.html", {
-        "listing": listing, "bid_count": bid_count, "high_bid": high_bid, "high_bidder": high_bidder, "message": ""
+            "listing": listing, "bid_count": bid_count, "high_bid": high_bid, "high_bidder": high_bidder
         })   
