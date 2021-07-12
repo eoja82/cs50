@@ -223,3 +223,16 @@ def watch(request, listing_id):
             return HttpResponseRedirect(reverse("index"))
     else:
         return HttpResponseRedirect(reverse("index"))
+
+
+def categories(request):
+    categories = []
+    for x in Listings.CATEGORY_CHOICES:
+            categories.append(x[0])
+    return render(request, "auctions/categories.html", {
+        "categories": categories
+    })
+
+
+def category_view(request, category):
+    return render(request, "auctions/category.html")
