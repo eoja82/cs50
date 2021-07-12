@@ -2,11 +2,11 @@ from typing import List
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.db.utils import Error, OperationalError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import Bid, Comment, Listings, User
+from .models import Bid, Comment, Listings, User, Watch
 
 def get_listing(listing_id):
     try:
@@ -19,6 +19,12 @@ def get_bids(listing):
         return Bid.objects.filter(listing=listing)
     except:
         return 0
+
+def get_watching(user):
+    try:
+        return Watch.objects.get(user=user)
+    except Watch.DoesNotExist:
+        return None
 
 def index(request):
     return render(request, "auctions/index.html", {
@@ -162,22 +168,24 @@ def listing_view(request, listing_id):
                 return render(request, "auctions/listing_view.html", {
                     "listing": listing, "high_bidder": high_bidder, "high_bid": high_bid, "bid_count": bid_count, "message": f"Your bid must be greater than ${high_bid.bids}"
                 })
-    elif request.method == "PUT":
-        # add to watchlist
-        pass
     else:
         listing = get_listing(listing_id)
         if not listing:
             return HttpResponseRedirect(reverse("index"))
     
+        high_bid = None
+        bid_count = None
+        high_bidder = None
+        watching = None
+
         try:
             bids = listing.bids.all()
         except Listings.DoesNotExist:
             pass
 
-        high_bid = None
-        bid_count = None
-        high_bidder = None
+        watchlist = get_watching(request.user)
+        if watching and listing in watchlist:
+            watching = True
 
         if bids:
             high_bid = bids.latest("bids")
@@ -185,5 +193,33 @@ def listing_view(request, listing_id):
             high_bidder = bids.latest("bids").user
         
         return render(request, "auctions/listing_view.html", {
-            "listing": listing, "bid_count": bid_count, "high_bid": high_bid, "high_bidder": high_bidder
-        })   
+            "listing": listing, "bid_count": bid_count, "high_bid": high_bid, "high_bidder": high_bidder, "watching": watching
+        })
+
+
+def watch(request, listing_id):
+    if request.method == "POST":
+        if request.POST["watch"] == "watch":
+            listing = get_listing(listing_id)
+            if not listing:
+                return HttpResponseBadRequest("Bad Request: listing does not exist.")
+            watching = get_watching(request.user)
+            print("watching = ", watching, "listing = ", listing)
+            if not watching:
+                # save user to watch and add
+                print("creating and saving to watch list")
+                watch = Watch(user=request.user)
+                watch.save()
+                watch.listings.add(listing)
+                print("watch = ", watch)
+            else:
+                # add to watch
+                print("saving to watch list")
+                watching.listings.add(listing)
+                print("watching.listings = ", watching.listings)
+            return HttpResponseRedirect(reverse("listing_view", args=(listing.id,)))
+        else:
+            # unwatch, temporary return
+            return HttpResponseRedirect(reverse("index"))
+    else:
+        return HttpResponseRedirect(reverse("index"))
