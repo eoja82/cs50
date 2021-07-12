@@ -184,7 +184,7 @@ def listing_view(request, listing_id):
             pass
 
         watchlist = get_watching(request.user)
-        if watching and listing in watchlist:
+        if listing in watchlist.listings.all():
             watching = True
 
         if bids:
@@ -204,23 +204,24 @@ def watch(request, listing_id):
             if not listing:
                 return HttpResponseBadRequest("Bad Request: listing does not exist.")
             watching = get_watching(request.user)
-            print("watching = ", watching, "listing = ", listing)
             if not watching:
                 # save user to watch and add
-                print("creating and saving to watch list")
                 watch = Watch(user=request.user)
                 watch.save()
                 watch.listings.add(listing)
-                print("watch = ", watch)
             else:
                 # add to watch
-                print("saving to watch list")
                 watching.listings.add(listing)
-                print("watching.listings = ", watching.listings)
             return HttpResponseRedirect(reverse("listing_view", args=(listing.id,)))
         else:
-            # unwatch, temporary return
-            return HttpResponseRedirect(reverse("index"))
+            # unwatch
+            listing = get_listing(listing_id)
+            if not listing:
+                return HttpResponseBadRequest("Bad Request: listing does not exist.")
+
+            watching = get_watching(request.user)
+            watching.listings.remove(listing)
+            return HttpResponseRedirect(reverse("listing_view", args=(listing_id,)))
     else:
         return HttpResponseRedirect(reverse("index"))
 
