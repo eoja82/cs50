@@ -5,6 +5,17 @@
 {% endblock %}
 
 {% block body %}
+  <form action="{% url 'watch' listing.id %}" method="POST">
+    {% csrf_token %}
+    {% if watching %}
+      <input type="text" value="watching" name="watch" hidden>
+      <button class="btn btn-outline-secondary btn-sm" type="submit">Watching</button>
+    {% else %}
+      <input type="text" value="watch" name="watch" hidden>
+      <button class="btn btn-outline-info btn-sm" type="submit">Watch</button>
+    {% endif %}
+  </form>
+
   <h1>{{ listing.title }}</h1>
   
   {% if listing.photoURL %}
@@ -24,7 +35,7 @@
     <p>${{ listing.starting_bid }}</p>
   {% endif %}
   
-  <form action="" method="POST">
+  <form action="{% url 'listing_view' listing.id %}" method="POST">
     {% csrf_token %}
     <div class="form-group">
       {% if high_bidder %}
