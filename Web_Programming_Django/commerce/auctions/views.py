@@ -114,6 +114,10 @@ def listing_view(request, listing_id):
         listing_id = request.POST["listing_id"]
 
         listing = get_listing(listing_id)
+        watching = False
+        watchlist = get_watching(request.user)
+        if listing in watchlist.listings.all():
+            watching = True
 
         try:
             bids = listing.bids.all()
@@ -136,16 +140,21 @@ def listing_view(request, listing_id):
                 high_bidder = bids.latest("bids").user
 
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count
+                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count, "watching": watching
                 })
             else:
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "message": f"Bid must be at least ${listing.starting_bid}."
+                    "listing": listing, "message": f"Bid must be at least ${listing.starting_bid}.", "watching": watching
                 })
         else:
             high_bid = bids.latest("bids")
             bid_count = bids.count()
             high_bidder = bids.latest("bids").user
+            watching =False
+
+            watchlist = get_watching(request.user)
+            if listing in watchlist.listings.all():
+                    watching = True
 
             if bid > high_bid.bids:
                 # save bid
@@ -162,11 +171,11 @@ def listing_view(request, listing_id):
                 high_bidder = bids.latest("bids").user
 
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count
+                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count, "watching": watching
                 })
             else:
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "high_bidder": high_bidder, "high_bid": high_bid, "bid_count": bid_count, "message": f"Your bid must be greater than ${high_bid.bids}"
+                    "listing": listing, "high_bidder": high_bidder, "high_bid": high_bid, "bid_count": bid_count, "message": f"Your bid must be greater than ${high_bid.bids}", "watching": watching
                 })
     else:
         listing = get_listing(listing_id)
@@ -183,9 +192,10 @@ def listing_view(request, listing_id):
         except Listings.DoesNotExist:
             pass
 
-        watchlist = get_watching(request.user)
-        if listing in watchlist.listings.all():
-            watching = True
+        if request.user.is_authenticated:
+            watchlist = get_watching(request.user)
+            if listing in watchlist.listings.all():
+                watching = True
 
         if bids:
             high_bid = bids.latest("bids")
@@ -236,4 +246,11 @@ def categories(request):
 
 
 def category_view(request, category):
-    return render(request, "auctions/category.html")
+    if category == "None":
+        listings = Listings.objects.filter(category="")
+    else:
+        listings = Listings.objects.filter(category=category)
+
+    return render(request, "auctions/category.html", {
+        "listings": listings
+    })
