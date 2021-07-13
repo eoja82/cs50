@@ -6,6 +6,14 @@
 
 {% block body %}
 
+  {% if user.username == listing.winner %}
+    <h1 style="color: blue;">Congratulations, you are the winner of this auction!</h1>
+  {% endif %}
+
+  {% if listing.closed %}
+    <h3 style="color: red;">This listing has ended.</h3>
+  {% endif %}
+
   {% if user.is_authenticated %}
     <form action="{% url 'watch' listing.id %}" method="POST">
       {% csrf_token %}
@@ -31,7 +39,11 @@
   <p>{{ listing.description }}</p>
   
   {% if high_bid %}
-    <h5>Current bid:</h5>
+    {% if listing.closed %}
+      <h5>Winning Bid:</h5>
+    {% else %}
+      <h5>Current bid:</h5>
+    {% endif %}
     <p>${{ high_bid.bids }}</p>
   {% else %}
     <h5>Starting Bid:</h5>
@@ -59,13 +71,37 @@
     <button 
       class="btn btn-primary" 
       type="submit" 
-      {% if not user.is_authenticated %}
+      {% if not user.is_authenticated or listing.closed %}
         disabled
       {% endif %}>
         Place Bid
       </button>
   </form>
+
   <h5 style="color: red;">{{ message }}</h5>
+
+
+  <form action="{% url 'close_auction' listing.id %}" method="POST">
+    {% csrf_token %}
+    <input type="text" name="listing_id" value="{{ listing.id }}" hidden>
+    {% if user == listing.user and listing.highest_bid %}
+      <input type="text" name="user_action" value="end" hidden>
+      <button 
+        class="btn btn-danger"  
+        type="submit"
+        {% if listing.closed %}
+          disabled
+        {% endif %}>
+          End Auction
+        </button>
+    {% else %}
+      {% if user == listing.user %}
+        <input type="text" name="user_action" value="delete" hidden>
+        <button class="btn btn-danger" type="submit">Delete Listing</button>
+      {% endif %}
+    {% endif %}
+  </form>
+
   <h5 style="margin-top: 1rem;">Details:</h5>
   <ul>
     <li>Listed by: {{ listing.user }}</li>
@@ -78,4 +114,5 @@
     </li>
     <li>Date Listed: {{ listing.date_created }}</li>
   </ul>
+
 {% endblock %}
