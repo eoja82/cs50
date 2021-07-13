@@ -28,7 +28,7 @@ def get_watching(user):
 
 def index(request):
     return render(request, "auctions/index.html", {
-        "listings": Listings.objects.all().order_by("-date_created")
+        "listings": Listings.objects.filter(closed=False).order_by("-date_created")
     })
 
 
@@ -274,12 +274,12 @@ def categories(request):
 
 def category_view(request, category):
     if category == "None":
-        listings = Listings.objects.filter(category="")
+        listings = Listings.objects.filter(category="", closed=False)
     else:
-        listings = Listings.objects.filter(category=category)
+        listings = Listings.objects.filter(category=category, closed=False)
 
     return render(request, "auctions/category.html", {
-        "listings": listings
+        "listings": listings, "category": category
     })
 
 
