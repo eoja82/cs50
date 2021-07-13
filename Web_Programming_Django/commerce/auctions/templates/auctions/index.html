@@ -4,27 +4,25 @@
 <h2>Active Listings</h2>
 
 {% for listing in listings %}
-  {% if not listing.closed %}
-    <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+  <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+    <a href="{% url 'listing_view' listing.pk %}">
+      <h4 class="card-title" style="color: black;">{{ listing.title }}</h4>
+    </a>
+    {% if listing.photoURL %}
       <a href="{% url 'listing_view' listing.pk %}">
-        <h4 class="card-title" style="color: black;">{{ listing.title }}</h4>
+        <img class="" src="{{ listing.photoURL }}" alt="Listing Photo" style="width: 200px;">
       </a>
-      {% if listing.photoURL %}
-        <a href="{% url 'listing_view' listing.pk %}">
-          <img class="" src="{{ listing.photoURL }}" alt="Listing Photo" style="width: 200px;">
-        </a>
-      {% else %}
-        <p class="noPhoto">No photo available.</p>
-      {% endif %}
-      <p class="card-text">{{ listing.description }}</p>
-      {% if listing.highest_bid >= listing.starting_bid %}
-        <p>Current Bid: {{ listing.highest_bid }}</p>
-      {% else %}
-        <p>Starting Bid: ${{ listing.starting_bid }}</p>
-      {% endif %}
-      <p class="card-text text-muted">{{ listing.date_created }}</p>
-    </div>
-  {% endif %}
+    {% else %}
+      <p class="noPhoto">No photo available.</p>
+    {% endif %}
+    <p class="card-text">{{ listing.description }}</p>
+    {% if listing.highest_bid >= listing.starting_bid %}
+      <p>Current Bid: {{ listing.highest_bid }}</p>
+    {% else %}
+      <p>Starting Bid: ${{ listing.starting_bid }}</p>
+    {% endif %}
+    <p class="card-text text-muted">{{ listing.date_created }}</p>
+  </div>
 {% empty %}
   <p>No listings available.</p>
 {% endfor %}
