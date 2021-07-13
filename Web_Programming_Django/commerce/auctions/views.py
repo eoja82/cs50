@@ -144,7 +144,7 @@ def listing_view(request, listing_id):
                 })
             else:
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "message": f"Bid must be at least ${listing.starting_bid}.", "watching": watching
+                    "listing": listing, "message": f"Your bid must be at least ${listing.starting_bid}.", "watching": watching
                 })
         else:
             high_bid = bids.latest("bids")
@@ -234,6 +234,18 @@ def watch(request, listing_id):
             return HttpResponseRedirect(reverse("listing_view", args=(listing_id,)))
     else:
         return HttpResponseRedirect(reverse("index"))
+
+
+def watchlist(request):
+    listings = None
+    watching = get_watching(request.user)
+    
+    if watching:
+        listings = watching.listings.all()
+
+    return render(request, "auctions/watchlist.html", {
+        "listings": listings
+    })
 
 
 def categories(request):
