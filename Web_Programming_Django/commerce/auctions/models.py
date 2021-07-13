@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.deletion import CASCADE
+from django.db.models.fields import BooleanField
 
 
 class User(AbstractUser):
@@ -23,6 +25,8 @@ class Listings(models.Model):
     category = models.CharField(max_length=15, choices=CATEGORY_CHOICES, blank=True)
     starting_bid = models.DecimalField(max_digits=12, decimal_places=2)
     highest_bid = models.DecimalField(max_digits=12, decimal_places=2, blank=True, default=0)
+    closed = BooleanField(default=False)
+    winner = models.CharField(blank=True, max_length=100)
     date_created = models.DateField(auto_now_add=True)
 
     def __str__(self):
