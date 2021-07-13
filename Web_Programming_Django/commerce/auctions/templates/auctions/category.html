@@ -1,10 +1,12 @@
 {% extends "auctions/layout.html" %}
 
 {% block title %}
-  Listing By Category
+  All listings for {{ category }}
 {% endblock %}
 
 {% block body %}
+
+<h1>All listings in category: {{ category }}</h1>
 
 {% for listing in listings %}
   <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
