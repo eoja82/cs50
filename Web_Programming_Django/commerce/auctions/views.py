@@ -266,3 +266,25 @@ def category_view(request, category):
     return render(request, "auctions/category.html", {
         "listings": listings
     })
+
+
+def close_auction(request, listing_id):
+    print(request.user.username, type(request.user.username))
+    if request.method == "POST":
+        listing_id = request.POST["listing_id"]
+        user_action = request.POST["user_action"]
+        listing = get_listing(listing_id)
+
+        if user_action == "end":
+            # end auction and set winner
+            listing.closed = True
+            listing.winner = request.user.username
+            listing.save(update_fields=["closed", "winner"])
+
+            return HttpResponseRedirect(reverse("listing_view", args=(listing.id,)))
+        else:
+            # delete listing
+            listing.delete()
+            return HttpResponseRedirect(reverse("index"))
+    else:
+        return HttpResponseRedirect(reverse("index"))
