@@ -248,6 +248,21 @@ def watchlist(request):
     })
 
 
+def user_listings(request):
+    listings = Listings.objects.filter(user=request.user)
+
+    return render(request, "auctions/user_listings.html", {
+        "listings": listings
+    })
+
+
+def won(request):
+    listings = Listings.objects.filter(winner=request.user)
+
+    return render(request, "auctions/won.html", {
+        "listings": listings
+    })
+
 def categories(request):
     categories = []
     for x in Listings.CATEGORY_CHOICES:
