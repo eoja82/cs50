@@ -5,16 +5,19 @@
 {% endblock %}
 
 {% block body %}
-  <form action="{% url 'watch' listing.id %}" method="POST">
-    {% csrf_token %}
-    {% if watching %}
-      <input type="text" value="watching" name="watch" hidden>
-      <button class="btn btn-outline-secondary btn-sm" type="submit">Watching</button>
-    {% else %}
-      <input type="text" value="watch" name="watch" hidden>
-      <button class="btn btn-info btn-sm" type="submit">Watch</button>
-    {% endif %}
-  </form>
+
+  {% if user.is_authenticated %}
+    <form action="{% url 'watch' listing.id %}" method="POST">
+      {% csrf_token %}
+      {% if watching %}
+        <input type="text" value="watching" name="watch" hidden>
+        <button class="btn btn-outline-secondary btn-sm" type="submit">Watching</button>
+      {% else %}
+        <input type="text" value="watch" name="watch" hidden>
+        <button class="btn btn-info btn-sm" type="submit">Watch</button>
+      {% endif %}
+    </form>
+  {% endif %}
 
   <h1>{{ listing.title }}</h1>
   
