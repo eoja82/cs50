@@ -6,7 +6,7 @@
 
 {% block body %}
 
-  {% if user.username == listing.winner %}
+  {% if user.is_authenticated and user.username == listing.winner %}
     <h1 style="color: blue;">Congratulations, you are the winner of this auction!</h1>
   {% endif %}
 
@@ -68,6 +68,7 @@
       <input class="form-control" type="number" name="bid" id="bid" max="9999999999" placeholder="Your Bid" required>
     </div>
     <input type="text" name="listing_id" value="{{ listing.pk }}" hidden>
+    {% if user != listing.user %}
     <button 
       class="btn btn-primary" 
       type="submit" 
@@ -75,7 +76,8 @@
         disabled
       {% endif %}>
         Place Bid
-      </button>
+    </button>
+    {% endif %}
   </form>
 
   <h5 style="color: red;">{{ message }}</h5>
