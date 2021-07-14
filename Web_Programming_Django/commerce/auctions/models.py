@@ -55,4 +55,4 @@ class Comment(models.Model):
     date_created = models.DateField(auto_now=True)
 
     def __str__(self):
-        return f"User: {self.user}, Comment: {self.comment}, Date: {self.date_created}"
+        return f"User: {self.user}, Comment: {self.comments}, Date: {self.date_created}"
