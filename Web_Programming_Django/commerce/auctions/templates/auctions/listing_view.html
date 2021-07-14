@@ -117,4 +117,31 @@
     <li>Date Listed: {{ listing.date_created }}</li>
   </ul>
 
+  <h5 style="margin-top: 1rem;">Comments:</h5>
+
+  {% if user.is_authenticated %}
+    <form action="{% url 'comment' %}" id="addComment" method="POST">
+      {% csrf_token %}
+      <div class="form-group">
+        <input type="text" name="listing" value="{{ listing.id }}" hidden>
+        <textarea class="form-control" name="comment" placeholder="Add A Comment" rows="1" maxlength="750" required></textarea>
+      </div>
+      <button class="btn btn-outline-primary" type="submit" style="margin-bottom: 1rem;">Comment</button>
+    </form>
+  {% endif %}
+
+  {% for comment in comments %}
+    <div class="card" style="margin-bottom: .5rem;">
+      <div class="card-header" style="color: blue;">
+        {{ comment.user }}:
+      </div>
+      <div class="card-body">
+        <p>{{ comment.comments }}</p>
+        <p class="text-muted" style="font-size: smaller;">{{ comment.date_created }}</p>
+      </div>
+    </div>
+  {% empty %}
+    None.
+  {% endfor %}
+
 {% endblock %}

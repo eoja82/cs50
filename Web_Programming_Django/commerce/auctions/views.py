@@ -124,6 +124,11 @@ def listing_view(request, listing_id):
         except Listings.DoesNotExist:
             pass
 
+        try:
+            comments = listing.comments.all()
+        except:
+            pass
+
         if not bids:
             if bid >= listing.starting_bid:
                 # save bid
@@ -140,11 +145,11 @@ def listing_view(request, listing_id):
                 high_bidder = bids.latest("bids").user
 
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count, "watching": watching
+                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count, "watching": watching, "comments": comments
                 })
             else:
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "message": f"Your bid must be at least ${listing.starting_bid}.", "watching": watching
+                    "listing": listing, "message": f"Your bid must be at least ${listing.starting_bid}.", "watching": watching, "comments": comments
                 })
         else:
             high_bid = bids.latest("bids")
@@ -171,11 +176,11 @@ def listing_view(request, listing_id):
                 high_bidder = bids.latest("bids").user
 
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count, "watching": watching
+                    "listing": listing, "high_bid": high_bid, "high_bidder": high_bidder, "bid_count": bid_count, "watching": watching, "comments": comments
                 })
             else:
                 return render(request, "auctions/listing_view.html", {
-                    "listing": listing, "high_bidder": high_bidder, "high_bid": high_bid, "bid_count": bid_count, "message": f"Your bid must be greater than ${high_bid.bids}", "watching": watching
+                    "listing": listing, "high_bidder": high_bidder, "high_bid": high_bid, "bid_count": bid_count, "message": f"Your bid must be greater than ${high_bid.bids}", "watching": watching, "comments": comments
                 })
     else:
         listing = get_listing(listing_id)
@@ -192,6 +197,11 @@ def listing_view(request, listing_id):
         except Listings.DoesNotExist:
             pass
 
+        try:
+            comments = listing.comments.all()
+        except:
+            pass
+
         if request.user.is_authenticated:
             watchlist = get_watching(request.user)
             if listing in watchlist.listings.all():
@@ -203,7 +213,7 @@ def listing_view(request, listing_id):
             high_bidder = bids.latest("bids").user
         
         return render(request, "auctions/listing_view.html", {
-            "listing": listing, "bid_count": bid_count, "high_bid": high_bid, "high_bidder": high_bidder, "watching": watching
+            "listing": listing, "bid_count": bid_count, "high_bid": high_bid, "high_bidder": high_bidder, "watching": watching, "comments": comments
         })
 
 
@@ -232,6 +242,20 @@ def watch(request, listing_id):
             watching = get_watching(request.user)
             watching.listings.remove(listing)
             return HttpResponseRedirect(reverse("listing_view", args=(listing_id,)))
+    else:
+        return HttpResponseRedirect(reverse("index"))
+
+
+def comment(request):
+    if request.method == "POST":
+        comment = request.POST["comment"]
+        listing = get_listing(request.POST["listing"])
+        user = request.user
+
+        newComment = Comment(listing=listing, user=user, comments=comment)
+        newComment.save()
+
+        return HttpResponseRedirect(reverse("listing_view", args=(listing.id,)))
     else:
         return HttpResponseRedirect(reverse("index"))
 
