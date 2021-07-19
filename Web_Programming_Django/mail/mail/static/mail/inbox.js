@@ -14,6 +14,7 @@ function compose_email() {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#read-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
@@ -55,6 +56,7 @@ function load_mailbox(mailbox) {
   
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
+  document.querySelector('#read-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'none';
 
   // Show the mailbox name
@@ -75,7 +77,7 @@ function load_mailbox(mailbox) {
       console.log(email.subject)
       card.className = "card"
       card.style.cursor = "pointer"
-      card.onclick = () => view_email(email)
+      card.onclick = () => view_email(email, mailbox)
       
       cardBody.className = "card-body"
       cardBody.style.position = "relative"
@@ -113,6 +115,96 @@ function load_mailbox(mailbox) {
   .catch( err => console.log("Error: ", err))
 }
 
-function view_email(email) {
+function view_email(email, mailbox) {
   console.log(email)
+  // Show the mailbox and hide other views
+  document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#read-view').style.display = 'block';
+  document.querySelector('#compose-view').style.display = 'none';
+
+  const read = document.getElementById("read-view")
+  // clear out previous views
+  read.innerHTML = ""
+
+   const sender =document.createElement("p")
+   sender.style.margin = "0"
+   sender.innerHTML = `<b>From: </b>${email.sender}`
+   read.append(sender)
+
+   const recipients = document.createElement("p")
+   recipients.style.margin = "0"
+   recipients.innerHTML = `<b>To: </b>${email.recipients.join(", ")}`
+   read.append(recipients)
+
+   const subject = document.createElement("p")
+   subject.style.margin = "0"
+   subject.innerHTML = `<b>Subject: </b>${email.subject}`
+   read.append(subject)
+
+   const date = document.createElement("p")
+   date.style.margin = "0"
+   date.innerHTML = `<b>Date: </b>${email.timestamp}`
+   read.append(date)
+
+   const responseButtons = document.createElement("div")
+
+  const reply = document.createElement("button")
+  reply.className = "btn btn-sm btn-outline-primary"
+  reply.style.margin = "5px"
+  reply.textContent = "Reply"
+  responseButtons.append(reply)
+
+  let archive
+  if (mailbox !== "sent") {
+    archive = document.createElement("button")
+    archive.className = "btn btn-sm btn-outline-primary"
+    archive.style.margin = "5px"
+    console.log("archived = ", email.archived)
+    if (!email.archived) {
+      archive.innerText = "Archive"
+    } else {
+      archive.innerText = "Unarchive"
+    }
+    archive.addEventListener("click", archive_email)
+    responseButtons.append(archive)
+  }
+
+  read.append(responseButtons)
+
+  read.append(document.createElement("hr"))
+
+  const body = document.createElement("p")
+  body.innerText = email.body
+  read.append(body)
+
+  // mark as archived or unarchive
+  function archive_email() {
+    fetch(`/emails/${email.id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        archived: email.archived ? false : true
+      })
+    })
+    .then( res => {
+      if (res.ok) {
+        archive.innerText = email.archived ? "Archive" : "Unarchive"
+        email.archived = !email.archived
+      } else {
+        console.log("Error archiving email.")
+      }
+    })
+    .catch( err => console.log("Error: ", err))
+  }
+
+  // mark as read
+  fetch(`/emails/${email.id}`, {
+    method: "PUT",
+    body: JSON.stringify({
+      read: true
+    })
+  })
+  .then( res => {
+    if (!res.ok) console.log("Error marking email as read.")
+  })
+  .catch( err => console.log("Error: ", err))
 }
