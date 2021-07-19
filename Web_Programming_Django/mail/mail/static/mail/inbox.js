@@ -154,9 +154,8 @@ function view_email(email, mailbox) {
   reply.textContent = "Reply"
   responseButtons.append(reply)
 
-  let archive
   if (mailbox !== "sent") {
-    archive = document.createElement("button")
+    const archive = document.createElement("button")
     archive.className = "btn btn-sm btn-outline-primary"
     archive.style.margin = "5px"
     console.log("archived = ", email.archived)
@@ -187,8 +186,7 @@ function view_email(email, mailbox) {
     })
     .then( res => {
       if (res.ok) {
-        archive.innerText = email.archived ? "Archive" : "Unarchive"
-        email.archived = !email.archived
+        load_mailbox("inbox")
       } else {
         console.log("Error archiving email.")
       }
