@@ -10,17 +10,28 @@ document.addEventListener('DOMContentLoaded', function() {
   load_mailbox('inbox');
 });
 
-function compose_email() {
+function compose_email(replyEmail = false) {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#read-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
-  // Clear out composition fields
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
+  if (replyEmail.sender) {
+    // pre-fill composition fields
+    let subjectPrefix = "Re: "
+    const regex = /^Re:\s/i
+    if (regex.test(replyEmail.subject)) subjectPrefix = ""
+    
+    document.querySelector('#compose-recipients').value = replyEmail.sender;
+    document.querySelector('#compose-subject').value = `${subjectPrefix} ${replyEmail.subject}`;
+    document.querySelector('#compose-body').value = `\nOn ${replyEmail.timestamp} ${replyEmail.sender} wrote:\n\n ${replyEmail.body}`;
+  } else {
+    // Clear out composition fields
+    document.querySelector('#compose-recipients').value = '';
+    document.querySelector('#compose-subject').value = '';
+    document.querySelector('#compose-body').value = '';
+  }
 
   document.querySelector("#compose-form").addEventListener("submit", sendEmail)
 
@@ -72,11 +83,11 @@ function load_mailbox(mailbox) {
         cardTitle = document.createElement("h5"),
         cardSubtitle = document.createElement("h6"),
         preview = document.createElement("P"),
-        date = document.createElement("p"),
-        read = document.createElement("div")
-      console.log(email.subject)
+        date = document.createElement("p")
+      
       card.className = "card"
       card.style.cursor = "pointer"
+      if (email.read) card.style.backgroundColor = "lightgray"
       card.onclick = () => view_email(email, mailbox)
       
       cardBody.className = "card-body"
@@ -96,18 +107,9 @@ function load_mailbox(mailbox) {
       cardBody.append(preview)
       
       date.className = "card-text"
-      if (!email.read) {
-        date.style = "position: absolute; bottom: 18px; right: 20px"
-      } else {
-        date.style = "position: absolute; bottom: 35px; right: 20px"
-      }
+      date.style = "position: absolute; bottom: 35px; right: 20px"
       date.textContent = email.timestamp
       cardBody.append(date)
-
-      if (!email.read) {
-        read.style = "width: 16px; height: 16px; background-color: #007bff; border-radius: 8px; position: absolute; top: 20px; right: 20px;"
-        cardBody.append(read)
-      }
 
       emailDiv.append(card)
     })
@@ -116,7 +118,6 @@ function load_mailbox(mailbox) {
 }
 
 function view_email(email, mailbox) {
-  console.log(email)
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#read-view').style.display = 'block';
@@ -152,13 +153,13 @@ function view_email(email, mailbox) {
   reply.className = "btn btn-sm btn-outline-primary"
   reply.style.margin = "5px"
   reply.textContent = "Reply"
+  reply.onclick = () => compose_email(email)
   responseButtons.append(reply)
 
   if (mailbox !== "sent") {
     const archive = document.createElement("button")
     archive.className = "btn btn-sm btn-outline-primary"
     archive.style.margin = "5px"
-    console.log("archived = ", email.archived)
     if (!email.archived) {
       archive.innerText = "Archive"
     } else {
