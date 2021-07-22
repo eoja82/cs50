@@ -1,5 +1,34 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    TODO
+    {% if user.is_authenticated %}
+        <div class="card">
+            <div class="card-body">
+                <form action="{% url 'new_post' %}" method="POST" id="new-post-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="new-post">New Post</label>
+                         <textarea name="new-post" id="new-post" class="form-control" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    {% for post in posts %}
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ post.user }}</h5>
+                <p class="card-text">{{ post.post }}</p>
+                <p class="text-muted">{{ post.date_created }}</p>
+                {% if user == post.user %}
+                    <p>Edit</p>
+                {% endif%}
+                <p>❤️ <span class="text-muted">(0)</span></p>
+            </div>
+        </div>
+    {% empty %}
+        <p id="no-posts">No one has posted yet.</p>
+    {% endfor %}
 {% endblock %}
