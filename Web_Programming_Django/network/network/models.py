@@ -10,3 +10,7 @@ class Post(models.Model):
     user = models.ForeignKey(User, on_delete=CASCADE)
     post = models.CharField(max_length=250)
     date_created = models.DateTimeField(auto_now_add=True)
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=CASCADE)
+    post = models.ForeignKey(Post, related_name="likes", on_delete=CASCADE)
