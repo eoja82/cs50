@@ -1,3 +1,16 @@
 .card, #no-posts {
   margin: .5rem 1rem;
 }
+
+.like {
+  cursor: pointer;
+}
+
+.edit-post {
+  display: none;
+}
+
+.edit {
+  color: blue;
+  cursor: pointer;
+}
