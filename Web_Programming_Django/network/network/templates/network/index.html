@@ -4,7 +4,7 @@
     {% if user.is_authenticated %}
         <div class="card">
             <div class="card-body">
-                <form action="{% url 'new_post' %}" method="POST" id="new-post-form">
+                <form action="{% url 'post' %}" method="POST" id="new-post-form">
                     {% csrf_token %}
                     <div class="form-group">
                         <label for="new-post">New Post</label>
@@ -16,16 +16,34 @@
         </div>
     {% endif %}
 
-    {% for post in posts %}
+    {% for post in data %}
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">{{ post.user }}</h5>
-                <p class="card-text">{{ post.post }}</p>
+                <h5 class="card-title">{{ post.post.user }}</h5>
+                <p class="card-text" id="post-{{ post.post.id }}">{{ post.post.post }}</p>
+                <div id="edit-post-{{ post.post.id }}" class="edit-post">
+                    <form class="edit-post-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                             <textarea name="edit-post" id="edit-{{ post.post.id }}" class="form-control" rows="3">{{ post.post.post }}</textarea>
+                             <input type="text" value="{{ post.post.id }}" name="post-id" hidden>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </form>
+                </div>
                 <p class="text-muted">{{ post.date_created }}</p>
-                {% if user == post.user %}
-                    <p>Edit</p>
+                {% if user == post.post.user %}
+                    <p  id="show-edit-{{ post.post.id }}"
+                        class="edit"
+                        data-post_id="{{ post.post.id }}"
+                    >Edit</p>
                 {% endif%}
-                <p>❤️ <span class="text-muted">(0)</span></p>
+                <p  class="like" 
+                    data-post_id="{{ post.post.id }}"
+                    data-post_user="{{ post.post.user.id }}"
+                    data-user="{{ user.id }}"
+                    >❤️ <span id="likes-{{ post.post.id }}" class="text-muted"
+                >({{ post.likes }})</span></p>
             </div>
         </div>
     {% empty %}
