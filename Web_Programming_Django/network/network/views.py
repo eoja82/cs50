@@ -1,14 +1,100 @@
+import json
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django.urls.conf import path
+from django.views.decorators.csrf import csrf_exempt
 
-from .models import User
+from .models import Like, Post, User
 
 
 def index(request):
-    return render(request, "network/index.html")
+    data = []
+    user_likes = False
+    try:
+        posts = Post.objects.all().order_by("-date_created")
+        for post in posts:
+            print("post:", post.post)
+            try:
+                liked = Like.objects.get(user=request.user, post=post)
+                if liked: user_likes = True
+                
+            except Like.DoesNotExist:
+                print("DoesNotExist")
+                user_likes = False
+
+            data.append({"post": post, "likes": post.likes.all().count(), "user_likes": user_likes})
+    except:
+        print("no posts")
+        data = []
+        
+    return render(request, "network/index.html", {
+        "data": data, 
+    })
+
+
+@csrf_exempt
+@login_required
+def post(request):
+    """ create new post or edit existing post """
+    # create new post
+    if request.method == "POST":
+        try:
+            post = Post(user=request.user, post=request.POST["new-post"])
+            post.save()
+            print("new post saved")
+            return render(request, "network/index.html")
+        except:
+            pass
+    # edit post
+    elif request.method == "PUT":
+        data = json.loads(request.body)
+        id = data["post_id"]
+        edit = data["edit"]
+
+        try:
+            post = Post.objects.get(id=id)
+            post.post = edit
+            post.save()
+            print("Post edited, return json")
+            return JsonResponse({"post": post.post}, status=201)
+        except Post.DoesNotExist:
+            pass
+    else:
+        return render(request, "network/index.html")
+
+
+@csrf_exempt
+@login_required
+def like_post(request):
+    """ handle like / unlike of post """
+
+    if request.method == "POST":
+        data = json.loads(request.body)
+        
+        try:
+            post = Post.objects.get(id=data["post_id"])
+        except Post.DoesNotExist:
+            pass
+
+        try:
+            # unlike if found
+            liked = Like.objects.get(user=request.user, post=post)
+            liked.delete()
+        except Like.DoesNotExist:
+            # add like
+            like = Like(user=request.user, post=post)
+            like.save()
+
+        likes = post.likes.all().count()
+
+        return JsonResponse({"likes": likes}, status=201)
+    else:
+        print("like_post accessed via GET")
+        return render(request, "network/index.html")
 
 
 def login_view(request):
