@@ -1,0 +1,24 @@
+{% extends "network/layout.html" %}
+
+{% block profile %}
+  <div class="card text-center">
+    <div class="card-body">
+      <h2 class="card-title">{{ profile }}</h2>
+      <form action="">
+        {% if user.is_authenticated %}
+          {% if user.username != profile %}
+            <input type="text" hidden>
+            <button id="follow" type="submit" class="btn btn-outline-secondary">Follow</button>
+          {% else %}
+              <!-- button for user to do something -->
+          {% endif %}
+        {% endif %}  
+      </form>
+      <p>0<span class="text-muted"> Followers</span> - 0<span class="text-muted"> Following</span></p>
+    </div>
+  </div>
+{% endblock %}
+
+{% block posts %}
+  {% include "network/posts.html" %}
+{% endblock %}
