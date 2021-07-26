@@ -1,52 +1,5 @@
 {% extends "network/layout.html" %}
 
-{% block body %}
-    {% if user.is_authenticated %}
-        <div class="card">
-            <div class="card-body">
-                <form action="{% url 'post' %}" method="POST" id="new-post-form">
-                    {% csrf_token %}
-                    <div class="form-group">
-                        <label for="new-post">New Post</label>
-                         <textarea name="new-post" id="new-post" class="form-control" rows="3"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
-            </div>
-        </div>
-    {% endif %}
-
-    {% for post in data %}
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">{{ post.post.user }}</h5>
-                <p class="card-text" id="post-{{ post.post.id }}">{{ post.post.post }}</p>
-                <div id="edit-post-{{ post.post.id }}" class="edit-post">
-                    <form class="edit-post-form">
-                        {% csrf_token %}
-                        <div class="form-group">
-                             <textarea name="edit-post" id="edit-{{ post.post.id }}" class="form-control" rows="3">{{ post.post.post }}</textarea>
-                             <input type="text" value="{{ post.post.id }}" name="post-id" hidden>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </form>
-                </div>
-                <p class="text-muted">{{ post.date_created }}</p>
-                {% if user == post.post.user %}
-                    <p  id="show-edit-{{ post.post.id }}"
-                        class="edit"
-                        data-post_id="{{ post.post.id }}"
-                    >Edit</p>
-                {% endif%}
-                <p  class="like" 
-                    data-post_id="{{ post.post.id }}"
-                    data-post_user="{{ post.post.user.id }}"
-                    data-user="{{ user.id }}"
-                    >❤️ <span id="likes-{{ post.post.id }}" class="text-muted"
-                >({{ post.likes }})</span></p>
-            </div>
-        </div>
-    {% empty %}
-        <p id="no-posts">No one has posted yet.</p>
-    {% endfor %}
+{% block posts %}
+    {% include "network/posts.html" %}
 {% endblock %}
