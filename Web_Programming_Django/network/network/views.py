@@ -17,7 +17,6 @@ def index(request):
     try:
         posts = Post.objects.all().order_by("-date_created")
         for post in posts:
-            print("post:", post.post)
             try:
                 liked = Like.objects.get(user=request.user, post=post)
                 if liked: user_likes = True
@@ -33,6 +32,38 @@ def index(request):
         
     return render(request, "network/index.html", {
         "data": data, 
+    })
+
+
+def profile(request, user):
+    data = []
+    user_likes = False
+    
+    try:
+        user_profile = User.objects.get(username=user)
+        try:
+            posts = Post.objects.filter(user=user_profile).order_by("-date_created")
+            
+            for post in posts:
+                try:
+                    liked = Like.objects.get(user=request.user, post=post)
+                    if liked: user_likes = True
+                    
+                except Like.DoesNotExist:
+                    print("DoesNotExist")
+                    user_likes = False
+
+                data.append({"post": post, "likes": post.likes.all().count(), "user_likes": user_likes})
+        except Post.DoesNotExist:
+            print("no posts")
+            data = []
+    except User.DoesNotExist:
+        print("user does not exist")
+        pass
+    
+
+    return render(request, "network/profile.html", {
+        "data": data, "profile": user 
     })
 
 
