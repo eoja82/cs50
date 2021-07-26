@@ -10,7 +10,11 @@
   display: none;
 }
 
+.user {
+  color: inherit;
+}
+
 .edit {
-  color: blue;
+  color: #007bff;
   cursor: pointer;
 }
