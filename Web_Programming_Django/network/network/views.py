@@ -34,13 +34,16 @@ def index(request):
         "data": data, 
     })
 
-
+@csrf_exempt
 def profile(request, user):
     data = []
     user_likes = False
     
     try:
         user_profile = User.objects.get(username=user)
+        followers = user_profile.followers.all().count()
+        following = user_profile.following.all().count()
+
         try:
             posts = Post.objects.filter(user=user_profile).order_by("-date_created")
             
@@ -63,7 +66,7 @@ def profile(request, user):
     
 
     return render(request, "network/profile.html", {
-        "data": data, "profile": user 
+        "data": data, "profile": user, "followers": followers, "following": following
     })
 
 
