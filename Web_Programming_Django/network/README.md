@@ -2,6 +2,8 @@ Network
 
 Design a Twitter-like social network website for making posts and following users.
 
+![image](img/network.png)
+
 Network page
 Getting Started
 
