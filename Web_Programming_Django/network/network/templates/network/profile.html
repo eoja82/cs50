@@ -1,24 +1,40 @@
 {% extends "network/layout.html" %}
 
+{% load static %}
+
 {% block profile %}
   <div class="card text-center">
     <div class="card-body">
       <h2 class="card-title">{{ profile }}</h2>
-      <form action="">
         {% if user.is_authenticated %}
-          {% if user.username != profile %}
-            <input type="text" hidden>
-            <button id="follow" type="submit" class="btn btn-outline-secondary">Follow</button>
-          {% else %}
+          
+            <form id="follow"
+              {% if user.username == profile %}
+              style="display: none;"
+              {% endif %}
+            >
+              <input type="text" name="following" value="{{ profile }}" hidden>
+              <button id="follow-btn" type="submit" class="btn btn-outline-secondary">
+                {% if user_following %}
+                  Unfollow
+                {% else %}
+                  Follow
+                {% endif %}
+              </button>
+            </form>
+          
               <!-- button for user to do something -->
-          {% endif %}
+          
         {% endif %}  
-      </form>
-      <p>{{ followers }}<span class="text-muted"> Followers</span> - {{ following }}<span class="text-muted"> Following</span></p>
+      <p><span id="followers">{{ followers }}</span><span class="text-muted"> Followers</span> - <span id="following">{{ following }}</span><span class="text-muted"> Following</span></p>
     </div>
   </div>
 {% endblock %}
 
 {% block posts %}
   {% include "network/posts.html" %}
+{% endblock %}
+
+{% block script %}
+  <script src="{% static 'network/profile.js' %}"></script>
 {% endblock %}
