@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.urls.conf import path
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import Like, Post, User
+from .models import Follow, Like, Post, User
 
 
 def index(request):
@@ -35,45 +35,87 @@ def index(request):
     })
 
 @csrf_exempt
-def profile(request, user):
-    data = []
-    user_likes = False
-    
-    try:
-        user_profile = User.objects.get(username=user)
-        followers = user_profile.followers.all().count()
-        following = user_profile.following.all().count()
+def profile(request, profile):
+    """ renders a user's profile page, allows authenticated users to follow and unfollow other users """
 
+    if request.method == "POST":
+        data = json.loads(request.body)
+        result = None
+        
+        # check if user to follow exists
         try:
-            posts = Post.objects.filter(user=user_profile).order_by("-date_created")
+            user_to_follow = User.objects.get(username=data["follow"])
             
-            for post in posts:
-                try:
-                    liked = Like.objects.get(user=request.user, post=post)
-                    if liked: user_likes = True
-                    
-                except Like.DoesNotExist:
-                    print("DoesNotExist")
-                    user_likes = False
+            # check if user is already following
+            try:
+                # unfollow if found
+                following = Follow.objects.get(user=user_to_follow, following=request.user)
+                following.delete()
+                result = "Follow"
 
-                data.append({"post": post, "likes": post.likes.all().count(), "user_likes": user_likes})
-        except Post.DoesNotExist:
-            print("no posts")
-            data = []
-    except User.DoesNotExist:
-        print("user does not exist")
-        pass
-    
+            except Follow.DoesNotExist:
+                # not found follow 
+                follow = Follow(user=user_to_follow, following=request.user)
+                follow.save()
+                result = "Unfollow"
 
-    return render(request, "network/profile.html", {
-        "data": data, "profile": user, "followers": followers, "following": following
-    })
+            followers = user_to_follow.followers.all().count()
+
+        except User.DoesNotExist:
+            # user to follow does not exist
+            pass
+
+        return JsonResponse({"followers": followers, "result": result}, status=201)
+
+    else:
+        data = []
+        user_likes = False
+        user_following = False
+        
+        # check if user exists, number following and followers
+        try:
+            user_profile = User.objects.get(username=profile)
+            followers = user_profile.followers.all().count()
+            following = user_profile.following.all().count()
+
+            # check if user is following
+            try:
+                followed = Follow.objects.get(user=user_profile, following=request.user)
+                user_following = True
+            except Follow.DoesNotExist:
+                user_following = False
+
+            # check if user made any posts
+            try:
+                posts = Post.objects.filter(user=user_profile).order_by("-date_created")
+                
+                for post in posts:
+                    try:
+                        liked = Like.objects.get(user=request.user, post=post)
+                        if liked: user_likes = True
+                        
+                    except Like.DoesNotExist:
+                        user_likes = False
+
+                    data.append({"post": post, "likes": post.likes.all().count(), "user_likes": user_likes})
+            except Post.DoesNotExist:
+                print("no posts")
+                data = []
+        except User.DoesNotExist:
+            print("user does not exist")
+            pass
+        
+
+        return render(request, "network/profile.html", {
+            "data": data, "profile": profile, "followers": followers, "following": following, "user_following": user_following
+        })
 
 
 @csrf_exempt
 @login_required
 def post(request):
     """ create new post or edit existing post """
+    
     # create new post
     if request.method == "POST":
         try:
