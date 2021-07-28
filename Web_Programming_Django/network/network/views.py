@@ -1,7 +1,7 @@
 import json
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -22,7 +22,6 @@ def index(request):
                 if liked: user_likes = True
                 
             except Like.DoesNotExist:
-                print("DoesNotExist")
                 user_likes = False
 
             data.append({"post": post, "likes": post.likes.all().count(), "user_likes": user_likes})
@@ -49,13 +48,13 @@ def profile(request, profile):
             # check if user is already following
             try:
                 # unfollow if found
-                following = Follow.objects.get(user=user_to_follow, following=request.user)
+                following = Follow.objects.get(following=user_to_follow, follower=request.user)
                 following.delete()
                 result = "Follow"
 
             except Follow.DoesNotExist:
                 # not found follow 
-                follow = Follow(user=user_to_follow, following=request.user)
+                follow = Follow(following=user_to_follow, follower=request.user)
                 follow.save()
                 result = "Unfollow"
 
@@ -80,7 +79,7 @@ def profile(request, profile):
 
             # check if user is following
             try:
-                followed = Follow.objects.get(user=user_profile, following=request.user)
+                followed = Follow.objects.get(following=user_profile, follower=request.user)
                 user_following = True
             except Follow.DoesNotExist:
                 user_following = False
@@ -98,9 +97,11 @@ def profile(request, profile):
                         user_likes = False
 
                     data.append({"post": post, "likes": post.likes.all().count(), "user_likes": user_likes})
+
             except Post.DoesNotExist:
                 print("no posts")
                 data = []
+
         except User.DoesNotExist:
             print("user does not exist")
             pass
@@ -111,11 +112,40 @@ def profile(request, profile):
         })
 
 
+@login_required
+def following(request):
+    data = []
+    
+    # check if user exists and get followers
+    try:
+        user = User.objects.get(id=request.user.id)
+        following = user.following.all()
+        
+    except User.DoesNotExist:
+        print("user does not exist")
+        return HttpResponseNotFound()
+    
+    # get all posts filter out not followed
+    try:
+        posts = Post.objects.all().order_by("-date_created")
+        for post in posts:
+            for followed in following:
+                if followed.following == post.user:
+                    data.append({"post": post, "likes": post.likes.all().count()})
+
+    except Post.DoesNotExist:
+        print("no posts")     
+        
+    return render(request, "network/following.html", {
+        "data": data
+    })
+
+
 @csrf_exempt
 @login_required
 def post(request):
     """ create new post or edit existing post """
-    
+
     # create new post
     if request.method == "POST":
         try:
