@@ -1,5 +1,6 @@
 import json
 from django.contrib.auth import authenticate, login, logout
+from django.core import paginator
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
@@ -7,6 +8,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.urls.conf import path
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator
 
 from .models import Follow, Like, Post, User
 
@@ -28,9 +30,13 @@ def index(request):
     except:
         print("no posts")
         data = []
+    
+    paginator = Paginator(data, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
         
     return render(request, "network/index.html", {
-        "data": data, 
+        "data": page_obj, 
     })
 
 @csrf_exempt
@@ -106,9 +112,12 @@ def profile(request, profile):
             print("user does not exist")
             pass
         
+        paginator = Paginator(data, 10)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
 
         return render(request, "network/profile.html", {
-            "data": data, "profile": profile, "followers": followers, "following": following, "user_following": user_following
+            "data": page_obj, "profile": profile, "followers": followers, "following": following, "user_following": user_following
         })
 
 
@@ -134,10 +143,14 @@ def following(request):
                     data.append({"post": post, "likes": post.likes.all().count()})
 
     except Post.DoesNotExist:
-        print("no posts")     
-        
+        print("no posts")
+
+    paginator = Paginator(data, 10)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "network/following.html", {
-        "data": data
+        "data": page_obj
     })
 
 
