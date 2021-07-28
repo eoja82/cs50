@@ -28,7 +28,7 @@
                     <button type="submit" class="btn btn-primary">Save</button>
                 </form>
             </div>
-            <p class="text-muted">{{ post.date_created }}</p>
+            <p class="text-muted">{{ post.post.date_created }}</p>
             {% if user == post.post.user %}
                 <p  id="show-edit-{{ post.post.id }}"
                     class="edit"
