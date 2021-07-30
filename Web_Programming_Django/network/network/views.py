@@ -18,16 +18,19 @@ def index(request):
     user_likes = False
     try:
         posts = Post.objects.all().order_by("-date_created")
+        print("user =", request.user)
         for post in posts:
-            try:
-                liked = Like.objects.get(user=request.user, post=post)
-                if liked: user_likes = True
-                
-            except Like.DoesNotExist:
-                user_likes = False
+            if not request.user.is_anonymous:
+                try:
+                    liked = Like.objects.get(user=request.user, post=post)
+                    if liked: user_likes = True
+                    
+                except Like.DoesNotExist:
+                    user_likes = False
 
             data.append({"post": post, "likes": post.likes.all().count(), "user_likes": user_likes})
-    except:
+    except Exception as e:
+        print(e)
         print("no posts")
         data = []
     
@@ -183,7 +186,7 @@ def post(request):
         except Post.DoesNotExist:
             pass
     else:
-        return render(request, "network/index.html")
+        return HttpResponseRedirect(reverse("index"))
 
 
 @csrf_exempt
