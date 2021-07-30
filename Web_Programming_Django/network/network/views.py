@@ -2,7 +2,7 @@ import json
 from django.contrib.auth import authenticate, login, logout
 from django.core import paginator
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect, HttpResponseServerError, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
@@ -18,7 +18,6 @@ def index(request):
     user_likes = False
     try:
         posts = Post.objects.all().order_by("-date_created")
-        print("user =", request.user)
         for post in posts:
             if not request.user.is_anonymous:
                 try:
@@ -168,9 +167,9 @@ def post(request):
             post = Post(user=request.user, post=request.POST["new-post"])
             post.save()
             print("new post saved")
-            return render(request, "network/index.html")
+            return HttpResponseRedirect(reverse("index"))
         except:
-            pass
+            return HttpResponseServerError()
     # edit post
     elif request.method == "PUT":
         data = json.loads(request.body)
